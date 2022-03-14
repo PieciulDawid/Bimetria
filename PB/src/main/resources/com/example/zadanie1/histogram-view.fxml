@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.chart.LineChart?>
+
+
+<?import javafx.scene.chart.XYChart.Series?>
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.zadanie1.HistogramController"
+            prefHeight="400.0" prefWidth="600.0">
+    <fx:define>
+        <Series fx:id="seriesAverage" name="average"/>
+        <Series fx:id="seriesRed" name="red"/>
+        <Series fx:id="seriesGreen" name="green"/>
+        <Series fx:id="seriesBlue" name="blue"/>
+
+
+    </fx:define>
+
+    <LineChart fx:id="histogram"
+               createSymbols="false"
+               horizontalGridLinesVisible="false"
+               verticalGridLinesVisible="false"
+               data=""/>
+
+</AnchorPane>
