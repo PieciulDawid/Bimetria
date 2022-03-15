@@ -34,34 +34,45 @@ import javafx.embed.swing.SwingFXUtils;
 import lombok.SneakyThrows;
 
 public class HelloApplication extends Application {
-    
-    public static BufferedImage imageBlue;
-    public static BufferedImage imageRed;
-    public static BufferedImage imageGreen;
+
     public static BufferedImage imageAverage;
+    public static BufferedImage imageStretch;
+    public static BufferedImage imageAlign;
     public static BufferedImage refImg;
-    
+
     public static File inFile;
-    
+
     private static LineChart<String, Number> chartHistogram;
-    
+
+    //histogram do orginalnego zdjecia
     static XYChart.Series<String, Number> seriesAverage;
     static XYChart.Series<String, Number> seriesRed;
     static XYChart.Series<String, Number> seriesGreen;
     static XYChart.Series<String, Number> seriesBlue;
+
+    //histogram do zdjecia z rozciagniętym histogramem
+    static XYChart.Series<String, Number> seriesAverageStretch;
+    static XYChart.Series<String, Number> seriesRedStretch;
+    static XYChart.Series<String, Number> seriesGreenStretch;
+    static XYChart.Series<String, Number> seriesBlueStretch;
+
+    //histogram do zdjecia z rozciagniętym histogramem
+    static XYChart.Series<String, Number> seriesAverageAlign;
+    static XYChart.Series<String, Number> seriesRedAlign;
+    static XYChart.Series<String, Number> seriesGreenAlign;
+    static XYChart.Series<String, Number> seriesBlueAlign;
 
     @Override
     public void start(Stage stage) throws IOException {
         String fileName = "zdjecie.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
-        imageBlue = ImageIO.read(inFile);
-        imageRed = ImageIO.read(inFile);
-        imageGreen = ImageIO.read(inFile);
+        imageStretch = ImageIO.read(inFile);
+        imageAlign = ImageIO.read(inFile);
         imageAverage = ImageIO.read(inFile);
 
-        final double[] height = {200};
-        final double[] width = {200 * refImg.getWidth() / (double)refImg.getHeight()};
+        final double[] height = {250};
+        final double[] width = {250 * refImg.getWidth() / (double)refImg.getHeight()};
 
 
         ImageView imageView = new ImageView();
@@ -76,23 +87,14 @@ public class HelloApplication extends Application {
         final Image[] imageA = {convertToFxImage(imageAverage)};
         imageViewA.setImage(imageA[0]);
 
-        ImageView imageViewG = new ImageView();
-        imageViewG.setFitHeight(height[0]);
-        imageViewG.setFitWidth(width[0]);
-        final Image[] imageG = {convertToFxImage(imageGreen)};
-        imageViewG.setImage(imageG[0]);
+        ImageView imageViewStretch = new ImageView();
+        imageViewStretch.setFitHeight(height[0]);
+        imageViewStretch.setFitWidth(width[0]);
+        HistogramStretchUtil histogramStretchUtil = new HistogramStretchUtil();
+        HistogramStretchUtil.stretchHistogram(refImg);
+        final Image[] imageS = {convertToFxImage(HistogramStretchUtil.stretchHistogram(refImg))};
+        imageViewStretch.setImage(imageS[0]);
 
-        ImageView imageViewB = new ImageView();
-        imageViewB.setFitHeight(height[0]);
-        imageViewB.setFitWidth(width[0]);
-        final Image[] imageB = {convertToFxImage(imageBlue)};
-        imageViewB.setImage(imageB[0]);
-
-        ImageView imageViewR = new ImageView();
-        imageViewR.setFitHeight(height[0]);
-        imageViewR.setFitWidth(width[0]);
-        final Image[] imageR = {convertToFxImage(imageRed)};
-        imageViewR.setImage(imageR[0]);
 
         initializeChart();
         updateChart(refImg);
@@ -108,42 +110,33 @@ public class HelloApplication extends Application {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Open Resource File");
                 inFile = fileChooser.showOpenDialog(stage);
-                
+
                 if (inFile != null && inFile.canRead()) {
                     refImg = ImageIO.read(inFile);
                     updateChart(refImg);
-    
+
                     final var copiedProps = getPropsFromImage(refImg);
-    
-                    imageBlue = copyImage(refImg, copiedProps);
-                    imageRed = copyImage(refImg, copiedProps);
-                    imageGreen = copyImage(refImg, copiedProps);
+
+                    imageStretch = copyImage(refImg, copiedProps);
+                    imageAlign = copyImage(refImg, copiedProps);
                     imageAverage = copyImage(refImg, copiedProps);
                 }
 
-                height[0] = 200;
-                width[0] = 200 * refImg.getWidth()/(double) refImg.getHeight();
+                height[0] = 250;
+                width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
 
                 imageView.setFitHeight(height[0]);
                 imageView.setFitWidth(width[0]);
                 imageView.setImage(convertToFxImage(refImg));
+
+                //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
                 convertToBinarization(refImg, 120);
 
                 imageViewA.setFitHeight(height[0]);
                 imageViewA.setFitWidth(width[0]);
                 imageViewA.setImage(convertToFxImage(imageAverage));
+                imageViewStretch.setImage(convertToFxImage(HistogramStretchUtil.stretchHistogram(refImg)));
 
-                imageViewG.setFitHeight(height[0]);
-                imageViewG.setFitWidth(width[0]);
-                imageViewG.setImage(convertToFxImage(imageGreen));
-
-                imageViewB.setFitHeight(height[0]);
-                imageViewB.setFitWidth(width[0]);
-                imageViewB.setImage(convertToFxImage(imageBlue));
-
-                imageViewR.setFitHeight(height[0]);
-                imageViewR.setFitWidth(width[0]);
-                imageViewR.setImage(convertToFxImage(imageRed));
             }
         });
 
@@ -174,42 +167,33 @@ public class HelloApplication extends Application {
                             ObservableValue<? extends Number> observable,
                             Number oldValue,
                             Number newValue) {
-                        
+
                         convertToBinarization(refImg, (double) newValue);
                         imageA[0] = convertToFxImage(imageAverage);
                         imageViewA.setImage(imageA[0]);
-
-                        imageG[0] = convertToFxImage(imageGreen);
-                        imageViewG.setImage(imageG[0]);
-
-                        imageB[0] = convertToFxImage(imageBlue);
-                        imageViewB.setImage(imageB[0]);
-
-                        imageR[0] = convertToFxImage(imageRed);
-                        imageViewR.setImage(imageR[0]);
                     }
                 });
 
         VBox vBox1 = new VBox();
-        vBox1.getChildren().addAll(imageView, imageViewA, slider, load, save);
+        vBox1.getChildren().addAll(imageViewA, slider, load, save);
         VBox vBox2 = new VBox();
-        vBox2.getChildren().addAll(imageViewG, imageViewB, imageViewR);
+        vBox2.getChildren().addAll(imageView, imageViewStretch);
         HBox hBox = new HBox();
         hBox.getChildren().addAll(vBox1, vBox2, chartHistogram);
         Group root = new Group(hBox);
-        Scene scene = new Scene(root, 1000, 650);
+        Scene scene = new Scene(root, 1000, 780);
         stage.setTitle("Binaryzacja i Histogram");
         stage.setScene(scene);
         stage.show();
     }
-    
+
     public static BufferedImage copyImage(BufferedImage source, Hashtable<String, Object> copiedProps) {
         return new BufferedImage(
                 source.getColorModel(),
                 source.copyData(null),
                 false, copiedProps);
     }
-    
+
     public static Hashtable<String, Object> getPropsFromImage(BufferedImage source) {
         final var copiedProps = new Hashtable<String, Object>();
         if (source.getPropertyNames() != null) {
@@ -219,7 +203,7 @@ public class HelloApplication extends Application {
         }
         return copiedProps;
     }
-    
+
     private static Image convertToFxImage(BufferedImage image) {
         WritableImage wr = null;
         if (image != null) {
@@ -244,80 +228,80 @@ public class HelloApplication extends Application {
         int width = image.getWidth();
         int height = image.getHeight();
         int[][] result = new int[width][height];
-        
+
         for (int row = 0; row < width; row++) {
             for (int col = 0; col < height; col++) {
                 result[row][col] = image.getRGB(row, col);
-                
+
                 int iRet = result[row][col];
                 int iB = (iRet & 0xff);
                 int iG = (( iRet & 0x00ff00) >> 8);
                 int iR = (( iRet & 0xff0000) >> 16);
                 int iAve = ( iR + iG + iB ) / 3;
-                
+
                 processChannel(value, row, col, iAve, imageAverage, 0, 0xffffff);
-                processChannel(value, row, col, iB, imageBlue, 0xff, 0xffffff);
-                processChannel(value, row, col, iG, imageGreen, 0x00ff00, 0xffffff);
-                processChannel(value, row, col, iR, imageRed, 0xff0000, 0xffffff);
             }
         }
     }
-    
+
     private static void initializeChart() {
         var xAxis = new CategoryAxis();
         var yAxis = new NumberAxis();
-        
+
         chartHistogram = new LineChart<>(xAxis, yAxis);
-        
+
+        chartHistogram.setMaxWidth(450);
+        chartHistogram.setMaxHeight(250);
+
         chartHistogram.setCreateSymbols(false);
         chartHistogram.setHorizontalGridLinesVisible(false);
         chartHistogram.setVerticalGridLinesVisible(false);
-        
+
         seriesAverage = new XYChart.Series<>();
         seriesRed = new XYChart.Series<>();
         seriesGreen = new XYChart.Series<>();
         seriesBlue = new XYChart.Series<>();
-        
+
         seriesAverage.setName("average");
         seriesRed.setName("red");
         seriesGreen.setName("green");
         seriesBlue.setName("blue");
-        
+
         chartHistogram.getData().addAll(
                 List.of(seriesRed, seriesAverage, seriesGreen, seriesBlue));
     }
-    
+
     private static void updateChart(BufferedImage image) {
-    
+
         var histogramGreen = new int[256];
         var histogramRed = new int[256];
         var histogramBlue = new int[256];
         var histogramAverage = new int[256];
-    
+
         int width = image.getWidth();
         int height = image.getHeight();
-        
+
         for (int row = 0; row < width; row++) {
             for (int col = 0; col < height; col++) {
                 int iRet = image.getRGB(row, col);
-                
+
                 int iB = (iRet & 0xff);
                 int iG = (( iRet & 0x00ff00) >> 8);
                 int iR = (( iRet & 0xff0000) >> 16);
                 int iAve = ( iR + iG + iB ) / 3;
-                
+
                 ++histogramGreen[iG];
                 ++histogramRed[iR];
                 ++histogramBlue[iB];
                 ++histogramAverage[iAve];
             }
         }
-    
+
         seriesRed.getData().clear();
         seriesGreen.getData().clear();
         seriesBlue.getData().clear();
         seriesAverage.getData().clear();
-        
+
         for (int i = 0; i < 256; i++) {
             seriesRed.getData().add(new XYChart.Data<>(String.valueOf(i), histogramRed[i]));
             seriesGreen.getData().add(new XYChart.Data<>(String.valueOf(i), histogramGreen[i]));
@@ -325,7 +309,7 @@ public class HelloApplication extends Application {
             seriesAverage.getData().add(new XYChart.Data<>(String.valueOf(i), histogramAverage[i]));
         }
     }
-    
+
     @SuppressWarnings("SameParameterValue")
     private static void processChannel(double value, int row, int col, int iR, BufferedImage image, int zero, int one) {
         if (iR > value) {
@@ -334,5 +318,5 @@ public class HelloApplication extends Application {
             image.setRGB(row, col, zero);
         }
     }
-    
+
 }
