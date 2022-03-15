@@ -203,14 +203,14 @@ public class HelloApplication extends Application {
         stage.show();
     }
     
-    private static BufferedImage copyImage(BufferedImage source, Hashtable<String, Object> copiedProps) {
+    public static BufferedImage copyImage(BufferedImage source, Hashtable<String, Object> copiedProps) {
         return new BufferedImage(
                 source.getColorModel(),
                 source.copyData(null),
                 false, copiedProps);
     }
     
-    private static Hashtable<String, Object> getPropsFromImage(BufferedImage source) {
+    public static Hashtable<String, Object> getPropsFromImage(BufferedImage source) {
         final var copiedProps = new Hashtable<String, Object>();
         if (source.getPropertyNames() != null) {
             Arrays.stream(source.getPropertyNames()).forEachOrdered((key) -> {
