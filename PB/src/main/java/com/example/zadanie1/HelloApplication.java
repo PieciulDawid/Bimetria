@@ -81,6 +81,8 @@ public class HelloApplication extends Application {
         imageView.setFitHeight(height[0]);
         imageView.setFitWidth(width[0]);
         imageView.setImage(convertToFxImage(refImg));
+        
+        //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
         convertToBinarization(refImg, 120);
 
         ImageView imageViewA = new ImageView();
