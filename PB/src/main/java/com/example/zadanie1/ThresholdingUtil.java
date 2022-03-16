@@ -17,7 +17,7 @@ public class ThresholdingUtil {
 			double omega0 = lessThenThresholdCount / (double) pixelCount;
 			
 			double stDev0 = standardDev(histogramData, 0, currThreshold, lessThenThresholdCount);
-			double stDev1 = standardDev(histogramData, currThreshold, 256, lessThenThresholdCount);
+			double stDev1 = standardDev(histogramData, currThreshold, 256, pixelCount - lessThenThresholdCount);
 			
 			
 			currVariance = omega0 * stDev0 + (1 - omega0) * stDev1;
