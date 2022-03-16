@@ -147,13 +147,6 @@ public class HelloApplication extends Application {
                 imageView.setFitWidth(width[0]);
                 imageView.setImage(convertToFxImage(refImg));
 
-                //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
-                convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
-
-                imageViewA.setFitHeight(height[0]);
-                imageViewA.setFitWidth(width[0]);
-                imageViewA.setImage(convertToFxImage(imageAverage));
-
                 imageStretch = HistogramStretchUtil.stretchHistogram(refImg);
                 imageViewStretch.setFitHeight(height[0]);
                 imageViewStretch.setFitWidth(width[0]);
@@ -166,6 +159,11 @@ public class HelloApplication extends Application {
                 imageViewAlign.setImage(convertToFxImage(imageAlign));
 
                 updateChart(refImg, imageStretch, imageAlign);
+                convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+
+                imageViewA.setFitHeight(height[0]);
+                imageViewA.setFitWidth(width[0]);
+                imageViewA.setImage(convertToFxImage(imageAverage));
             }
         });
 
@@ -197,9 +195,9 @@ public class HelloApplication extends Application {
                             Number oldValue,
                             Number newValue) {
 
-                        convertToBinarization(refImg, (double) newValue);
-                        imageA[0] = convertToFxImage(imageAverage);
-                        imageViewA.setImage(imageA[0]);
+//                        convertToBinarization(refImg, (double) newValue);
+//                        imageA[0] = convertToFxImage(imageAverage);
+//                        imageViewA.setImage(imageA[0]);
 
                         exposure((double) newValue);
                         imageView.setImage(convertToFxImage(refImg));
