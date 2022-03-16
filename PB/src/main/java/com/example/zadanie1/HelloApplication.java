@@ -68,7 +68,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "zdjecie.jpeg";
+        String fileName = "PB/zdjecie.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         imageStretch = ImageIO.read(inFile);
@@ -181,9 +181,9 @@ public class HelloApplication extends Application {
         });
 
         Slider slider = new Slider();
-        slider.setMin(0);
-        slider.setMax(255);
-        slider.setValue(120);
+        slider.setMin(-100);
+        slider.setMax(100);
+        slider.setValue(0);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setBlockIncrement(10);
@@ -198,9 +198,8 @@ public class HelloApplication extends Application {
 //                        convertToBinarization(refImg, (double) newValue);
 //                        imageA[0] = convertToFxImage(imageAverage);
 //                        imageViewA.setImage(imageA[0]);
-
-                        exposure((double) newValue);
-                        imageView.setImage(convertToFxImage(refImg));
+                        
+                        imageView.setImage(convertToFxImage(exposure(refImg, (double) newValue)));
                     }
                 });
 
@@ -470,20 +469,57 @@ public class HelloApplication extends Application {
         }
     }
 
-    private static void exposure(double exposure){
-
-        int licznik = (int)(140 -  exposure)/10;
-        for (int row = 0; row < refImg.getWidth(); row++) {
-            for (int col = 0; col < refImg.getHeight(); col++) {
-                int iRet = refImg.getRGB(row, col);
-
-                int iR = (( iRet & 0xff0000) >> 16)+licznik;
-                int iG = (( iRet & 0x00ff00) >> 8)+licznik;
-                int iB = (iRet & 0xff)+licznik;
-
-                refImg.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
+    private static BufferedImage exposure(BufferedImage image, double exposure) {
+        BufferedImage copy = ImageUtils.copyImage(image);
+        
+        if (exposure < 0) {
+            exposure = (100 + exposure) / 100d;
+            
+            int width = copy.getWidth();
+            int height = copy.getHeight();
+    
+            for (int row = 0; row < width; row++) {
+                for (int col = 0; col < height; col++) {
+                    int iRet = copy.getRGB(row, col);
+            
+            
+                    int iR = (( iRet & 0xff0000) >> 16);
+                    int iG = (( iRet & 0x00ff00) >> 8);
+                    int iB = (iRet & 0xff);
+            
+                    iR = (int) (exposure * iR);
+                    iG = (int) (exposure * iG);
+                    iB = (int) (exposure * iB);
+            
+                    copy.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
+                }
+            }
+            
+        } else if (exposure > 0) {
+            exposure = (100 - exposure) / 100d;
+    
+            int width = copy.getWidth();
+            int height = copy.getHeight();
+    
+            for (int row = 0; row < width; row++) {
+                for (int col = 0; col < height; col++) {
+                    int iRet = copy.getRGB(row, col);
+            
+            
+                    int iR = - ((( iRet & 0xff0000) >> 16) - 255);
+                    int iG = - ((( iRet & 0x00ff00) >> 8) - 255);
+                    int iB = - ((iRet & 0xff) - 255);
+            
+                    iR = - (((int) (exposure * iR)) - 255);
+                    iG = - (((int) (exposure * iG)) - 255);
+                    iB = - (((int) (exposure * iB)) - 255);
+            
+                    copy.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
+                }
             }
         }
+        
+        return copy;
     }
 
 }
