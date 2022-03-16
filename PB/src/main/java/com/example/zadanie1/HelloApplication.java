@@ -43,6 +43,7 @@ public class HelloApplication extends Application {
     public static File inFile;
 
     private static LineChart<String, Number> chartHistogram;
+    private static LineChart<String, Number> chartHistogramStretch;
 
     //histogram do orginalnego zdjecia
     static XYChart.Series<String, Number> seriesAverage;
@@ -90,14 +91,13 @@ public class HelloApplication extends Application {
         ImageView imageViewStretch = new ImageView();
         imageViewStretch.setFitHeight(height[0]);
         imageViewStretch.setFitWidth(width[0]);
-        HistogramStretchUtil histogramStretchUtil = new HistogramStretchUtil();
-        HistogramStretchUtil.stretchHistogram(refImg);
-        final Image[] imageS = {convertToFxImage(HistogramStretchUtil.stretchHistogram(refImg))};
+        imageStretch = HistogramStretchUtil.stretchHistogram(refImg);
+        final Image[] imageS = {convertToFxImage(imageStretch)};
         imageViewStretch.setImage(imageS[0]);
 
 
         initializeChart();
-        updateChart(refImg);
+        updateChart(refImg, imageStretch);
 
         Button load = new Button("Załaduj");
         Button save = new Button("Zapisz");
@@ -113,7 +113,7 @@ public class HelloApplication extends Application {
 
                 if (inFile != null && inFile.canRead()) {
                     refImg = ImageIO.read(inFile);
-                    updateChart(refImg);
+
 
                     final var copiedProps = getPropsFromImage(refImg);
 
@@ -135,8 +135,11 @@ public class HelloApplication extends Application {
                 imageViewA.setFitHeight(height[0]);
                 imageViewA.setFitWidth(width[0]);
                 imageViewA.setImage(convertToFxImage(imageAverage));
+                imageStretch = HistogramStretchUtil.stretchHistogram(refImg);
+                imageViewStretch.setFitHeight(height[0]);
+                imageViewStretch.setFitWidth(width[0]);
                 imageViewStretch.setImage(convertToFxImage(HistogramStretchUtil.stretchHistogram(refImg)));
-
+                updateChart(refImg, imageStretch);
             }
         });
 
@@ -178,8 +181,10 @@ public class HelloApplication extends Application {
         vBox1.getChildren().addAll(imageViewA, slider, load, save);
         VBox vBox2 = new VBox();
         vBox2.getChildren().addAll(imageView, imageViewStretch);
+        VBox vBox3 = new VBox();
+        vBox3.getChildren().addAll(chartHistogram, chartHistogramStretch );
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2, chartHistogram);
+        hBox.getChildren().addAll(vBox1, vBox2, vBox3);
         Group root = new Group(hBox);
         Scene scene = new Scene(root, 1000, 780);
         stage.setTitle("Binaryzacja i Histogram");
@@ -249,29 +254,50 @@ public class HelloApplication extends Application {
         var yAxis = new NumberAxis();
 
         chartHistogram = new LineChart<>(xAxis, yAxis);
+        chartHistogramStretch = new LineChart<>(xAxis, yAxis);
 
         chartHistogram.setMaxWidth(450);
         chartHistogram.setMaxHeight(250);
+
+        chartHistogramStretch.setMaxWidth(450);
+        chartHistogramStretch.setMaxHeight(250);
 
         chartHistogram.setCreateSymbols(false);
         chartHistogram.setHorizontalGridLinesVisible(false);
         chartHistogram.setVerticalGridLinesVisible(false);
 
-        seriesAverage = new XYChart.Series<>();
-        seriesRed = new XYChart.Series<>();
-        seriesGreen = new XYChart.Series<>();
-        seriesBlue = new XYChart.Series<>();
+        chartHistogramStretch.setCreateSymbols(false);
+        chartHistogramStretch.setHorizontalGridLinesVisible(false);
+        chartHistogramStretch.setVerticalGridLinesVisible(false);
+
+        seriesAverage   = new XYChart.Series<>();
+        seriesRed       = new XYChart.Series<>();
+        seriesGreen     = new XYChart.Series<>();
+        seriesBlue      = new XYChart.Series<>();
+
+        seriesAverageStretch   = new XYChart.Series<>();
+        seriesRedStretch       = new XYChart.Series<>();
+        seriesGreenStretch     = new XYChart.Series<>();
+        seriesBlueStretch      = new XYChart.Series<>();
 
         seriesAverage.setName("average");
         seriesRed.setName("red");
         seriesGreen.setName("green");
         seriesBlue.setName("blue");
 
+        seriesAverageStretch.setName("average");
+        seriesRedStretch.setName("red");
+        seriesGreenStretch.setName("green");
+        seriesBlueStretch.setName("blue");
+
         chartHistogram.getData().addAll(
                 List.of(seriesRed, seriesAverage, seriesGreen, seriesBlue));
+
+        chartHistogramStretch.getData().addAll(
+                List.of(seriesRedStretch, seriesAverageStretch, seriesGreenStretch, seriesBlueStretch));
     }
 
-    private static void updateChart(BufferedImage image) {
+    private static void updateChart(BufferedImage image, BufferedImage imageStretch) {
 
         var histogramGreen = new int[256];
         var histogramRed = new int[256];
@@ -308,6 +334,43 @@ public class HelloApplication extends Application {
             seriesBlue.getData().add(new XYChart.Data<>(String.valueOf(i), histogramBlue[i]));
             seriesAverage.getData().add(new XYChart.Data<>(String.valueOf(i), histogramAverage[i]));
         }
+
+        histogramGreen = new int[256];
+        histogramRed = new int[256];
+        histogramBlue = new int[256];
+        histogramAverage = new int[256];
+
+        width = imageStretch.getWidth();
+        height = imageStretch.getHeight();
+
+        for (int row = 0; row < width; row++) {
+            for (int col = 0; col < height; col++) {
+                int iRet = imageStretch.getRGB(row, col);
+
+                int iB = (iRet & 0xff);
+                int iG = (( iRet & 0x00ff00) >> 8);
+                int iR = (( iRet & 0xff0000) >> 16);
+                int iAve = ( iR + iG + iB ) / 3;
+
+                ++histogramGreen[iG];
+                ++histogramRed[iR];
+                ++histogramBlue[iB];
+                ++histogramAverage[iAve];
+            }
+        }
+
+        seriesRedStretch.getData().clear();
+        seriesGreenStretch.getData().clear();
+        seriesBlueStretch.getData().clear();
+        seriesAverageStretch.getData().clear();
+
+        for (int i = 0; i < 256; i++) {
+            seriesRedStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramRed[i]));
+            seriesGreenStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramGreen[i]));
+            seriesBlueStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramBlue[i]));
+            seriesAverageStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramAverage[i]));
+        }
+
     }
 
     @SuppressWarnings("SameParameterValue")
