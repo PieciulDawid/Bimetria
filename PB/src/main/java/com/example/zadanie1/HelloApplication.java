@@ -66,7 +66,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "zdjecie.jpeg";
+        String fileName = "PB/zdjecie.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         imageStretch = ImageIO.read(inFile);
