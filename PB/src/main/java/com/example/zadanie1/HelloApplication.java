@@ -81,7 +81,7 @@ public class HelloApplication extends Application {
         imageView.setFitHeight(height[0]);
         imageView.setFitWidth(width[0]);
         imageView.setImage(convertToFxImage(refImg));
-        
+
         //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
         convertToBinarization(refImg, 120);
 
@@ -102,7 +102,7 @@ public class HelloApplication extends Application {
         imageViewAlign.setFitHeight(height[0]);
         imageViewAlign.setFitWidth(width[0]);
         //TODO tutaj wstawić wyrówanie histogramu
-        //imageAlign =
+        imageAlign = HistogramAlignUtil.alignHistogram(refImg);
         final Image[] imageAl = {convertToFxImage(imageAlign)};
         imageViewAlign.setImage(imageAl[0]);
 
@@ -154,7 +154,7 @@ public class HelloApplication extends Application {
 
 
                 //TODO tutaj wstawić wyrówanie histogramu
-                //imageAlign =
+                imageAlign = HistogramAlignUtil.alignHistogram(refImg);
                 imageViewAlign.setFitHeight(height[0]);
                 imageViewAlign.setFitWidth(width[0]);
                 imageViewAlign.setImage(convertToFxImage(imageAlign));
