@@ -35,6 +35,8 @@ import lombok.SneakyThrows;
 
 public class HelloApplication extends Application {
 
+    private static int[] histogramAverageData;
+
     public static BufferedImage imageAverage;
     public static BufferedImage imageStretch;
     public static BufferedImage imageAlign;
@@ -66,7 +68,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "PB/zdjecie.jpeg";
+        String fileName = "zdjecie.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         imageStretch = ImageIO.read(inFile);
@@ -83,13 +85,10 @@ public class HelloApplication extends Application {
         imageView.setImage(convertToFxImage(refImg));
 
         //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
-        convertToBinarization(refImg, 120);
+        //ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth());
+        //convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
 
-        ImageView imageViewA = new ImageView();
-        imageViewA.setFitHeight(height[0]);
-        imageViewA.setFitWidth(width[0]);
-        final Image[] imageA = {convertToFxImage(imageAverage)};
-        imageViewA.setImage(imageA[0]);
+
 
         ImageView imageViewStretch = new ImageView();
         imageViewStretch.setFitHeight(height[0]);
@@ -109,6 +108,14 @@ public class HelloApplication extends Application {
 
         initializeChart();
         updateChart(refImg, imageStretch, imageAlign);
+
+        convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+
+        ImageView imageViewA = new ImageView();
+        imageViewA.setFitHeight(height[0]);
+        imageViewA.setFitWidth(width[0]);
+        final Image[] imageA = {convertToFxImage(imageAverage)};
+        imageViewA.setImage(imageA[0]);
 
         Button load = new Button("Załaduj");
         Button save = new Button("Zapisz");
@@ -141,7 +148,7 @@ public class HelloApplication extends Application {
                 imageView.setImage(convertToFxImage(refImg));
 
                 //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
-                convertToBinarization(refImg, 120);
+                convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
 
                 imageViewA.setFitHeight(height[0]);
                 imageViewA.setFitWidth(width[0]);
@@ -153,7 +160,6 @@ public class HelloApplication extends Application {
                 imageViewStretch.setImage(convertToFxImage(imageStretch));
 
 
-                //TODO tutaj wstawić wyrówanie histogramu
                 imageAlign = HistogramAlignUtil.alignHistogram(refImg);
                 imageViewAlign.setFitHeight(height[0]);
                 imageViewAlign.setFitWidth(width[0]);
@@ -194,6 +200,9 @@ public class HelloApplication extends Application {
                         convertToBinarization(refImg, (double) newValue);
                         imageA[0] = convertToFxImage(imageAverage);
                         imageViewA.setImage(imageA[0]);
+
+                        exposure((double) newValue);
+                        imageView.setImage(convertToFxImage(refImg));
                     }
                 });
 
@@ -248,7 +257,6 @@ public class HelloApplication extends Application {
     }
 
     private static void convertToBinarization(BufferedImage image, double value) {
-
 
         int width = image.getWidth();
         int height = image.getHeight();
@@ -348,6 +356,7 @@ public class HelloApplication extends Application {
         var histogramRed = new int[256];
         var histogramBlue = new int[256];
         var histogramAverage = new int[256];
+        histogramAverageData = histogramAverage;
 
         int width = image.getWidth();
         int height = image.getHeight();
@@ -460,6 +469,22 @@ public class HelloApplication extends Application {
             image.setRGB(row, col, one);
         } else {
             image.setRGB(row, col, zero);
+        }
+    }
+
+    private static void exposure(double exposure){
+
+        int licznik = (int)(140 -  exposure)/10;
+        for (int row = 0; row < refImg.getWidth(); row++) {
+            for (int col = 0; col < refImg.getHeight(); col++) {
+                int iRet = refImg.getRGB(row, col);
+
+                int iR = (( iRet & 0xff0000) >> 16)+licznik;
+                int iG = (( iRet & 0x00ff00) >> 8)+licznik;
+                int iB = (iRet & 0xff)+licznik;
+
+                refImg.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
+            }
         }
     }
 
