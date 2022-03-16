@@ -5,6 +5,8 @@ import java.nio.channels.FileChannel;
 
 public class HistogramStretchUtil {
 	
+	private HistogramStretchUtil() {}
+	
 	public static final int MIN = 0;
 	public static final int MAX = 1;
 	
@@ -95,7 +97,7 @@ public class HistogramStretchUtil {
 				iG = (int) (params[G] * (iG - minMax[G][MIN]));
 				iB = (int) (params[B] * (iB - minMax[B][MIN]));
 				
-				copy.setRGB(row, col, iR << 16 + iG << 8 + iB);
+				copy.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
 			}
 		}
 		

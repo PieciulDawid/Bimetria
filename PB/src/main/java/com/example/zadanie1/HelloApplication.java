@@ -52,7 +52,7 @@ public class HelloApplication extends Application {
     static XYChart.Series<String, Number> seriesGreen;
     static XYChart.Series<String, Number> seriesBlue;
 
-    //histogram do zdjecia z rozciagniętym histogramem
+    //histogram do zdjęcia z rozciągniętym histogramem
     static XYChart.Series<String, Number> seriesAverageStretch;
     static XYChart.Series<String, Number> seriesRedStretch;
     static XYChart.Series<String, Number> seriesGreenStretch;
