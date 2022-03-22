@@ -133,7 +133,7 @@ public class HelloApplication extends Application {
 
         Slider slider = new Slider();
         slider.setMin(1);
-        slider.setMax(20);
+        slider.setMax(40);
         slider.setValue(3);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
@@ -145,8 +145,7 @@ public class HelloApplication extends Application {
                             ObservableValue<? extends Number> observable,
                             Number oldValue,
                             Number newValue) {
-
-                        imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue)));
+                        imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue / 2)));
                     }
                 });
 
