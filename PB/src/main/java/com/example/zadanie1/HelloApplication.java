@@ -41,6 +41,7 @@ public class HelloApplication extends Application {
     public static BufferedImage imageStretch;
     public static BufferedImage imageAlign;
     public static BufferedImage refImg;
+    public static BufferedImage refImgOriginal;
 
     public static File inFile;
 
@@ -68,9 +69,10 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "PB/zdjecie.jpeg";
+        String fileName = "zdjecie.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
+        refImgOriginal = ImageIO.read(inFile);
         imageStretch = ImageIO.read(inFile);
         imageAlign = ImageIO.read(inFile);
         imageAverage = ImageIO.read(inFile);
@@ -135,6 +137,7 @@ public class HelloApplication extends Application {
 
                     final var copiedProps = getPropsFromImage(refImg);
 
+                    refImgOriginal = copyImage(refImg, copiedProps);
                     imageStretch = copyImage(refImg, copiedProps);
                     imageAlign = copyImage(refImg, copiedProps);
                     imageAverage = copyImage(refImg, copiedProps);
@@ -200,6 +203,7 @@ public class HelloApplication extends Application {
 //                        imageViewA.setImage(imageA[0]);
                         
                         imageView.setImage(convertToFxImage(exposure(refImg, (double) newValue)));
+                        updateChart(refImg, imageStretch, imageAlign);
                     }
                 });
 
@@ -288,12 +292,15 @@ public class HelloApplication extends Application {
 
         chartHistogram.setMaxWidth(450);
         chartHistogram.setMaxHeight(250);
+        chartHistogram.setAnimated(false);
 
         chartHistogramStretch.setMaxWidth(450);
         chartHistogramStretch.setMaxHeight(250);
+        chartHistogramStretch.setAnimated(false);
 
         chartHistogramAlign.setMaxWidth(450);
         chartHistogramAlign.setMaxHeight(250);
+        chartHistogramAlign.setAnimated(false);
 
         chartHistogram.setCreateSymbols(false);
         chartHistogram.setHorizontalGridLinesVisible(false);
@@ -470,7 +477,7 @@ public class HelloApplication extends Application {
     }
 
     private static BufferedImage exposure(BufferedImage image, double exposure) {
-        BufferedImage copy = ImageUtils.copyImage(image);
+        BufferedImage copy = refImgOriginal;
         
         if (exposure < 0) {
             exposure = (100 + exposure) / 100d;
@@ -490,8 +497,8 @@ public class HelloApplication extends Application {
                     iR = (int) (exposure * iR);
                     iG = (int) (exposure * iG);
                     iB = (int) (exposure * iB);
-            
-                    copy.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
+
+                    image.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
                 }
             }
             
@@ -513,13 +520,13 @@ public class HelloApplication extends Application {
                     iR = - (((int) (exposure * iR)) - 255);
                     iG = - (((int) (exposure * iG)) - 255);
                     iB = - (((int) (exposure * iB)) - 255);
-            
-                    copy.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
+
+                    image.setRGB(row, col, (iR << 16) | (iG << 8) | iB);
                 }
             }
         }
         
-        return copy;
+        return image;
     }
 
 }
