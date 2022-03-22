@@ -7,10 +7,6 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -18,17 +14,18 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.List;
 
 import javafx.embed.swing.SwingFXUtils;
 import lombok.SneakyThrows;
@@ -37,35 +34,12 @@ public class HelloApplication extends Application {
 
     private static int[] histogramAverageData;
 
-    public static BufferedImage imageAverage;
+    public static BufferedImage imageOtsu;
     public static BufferedImage imageStretch;
-    public static BufferedImage imageAlign;
+    public static BufferedImage imageNiBlack;
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
-
     public static File inFile;
-
-    private static LineChart<String, Number> chartHistogram;
-    private static LineChart<String, Number> chartHistogramStretch;
-    private static LineChart<String, Number> chartHistogramAlign;
-
-    //histogram do orginalnego zdjecia
-    static XYChart.Series<String, Number> seriesAverage;
-    static XYChart.Series<String, Number> seriesRed;
-    static XYChart.Series<String, Number> seriesGreen;
-    static XYChart.Series<String, Number> seriesBlue;
-
-    //histogram do zdjęcia z rozciągniętym histogramem
-    static XYChart.Series<String, Number> seriesAverageStretch;
-    static XYChart.Series<String, Number> seriesRedStretch;
-    static XYChart.Series<String, Number> seriesGreenStretch;
-    static XYChart.Series<String, Number> seriesBlueStretch;
-
-    //histogram do zdjecia z rozciagniętym histogramem
-    static XYChart.Series<String, Number> seriesAverageAlign;
-    static XYChart.Series<String, Number> seriesRedAlign;
-    static XYChart.Series<String, Number> seriesGreenAlign;
-    static XYChart.Series<String, Number> seriesBlueAlign;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -74,23 +48,23 @@ public class HelloApplication extends Application {
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
         imageStretch = ImageIO.read(inFile);
-        imageAlign = ImageIO.read(inFile);
-        imageAverage = ImageIO.read(inFile);
+        imageNiBlack = ImageIO.read(inFile);
+        imageOtsu = ImageIO.read(inFile);
 
         final double[] height = {250};
         final double[] width = {250 * refImg.getWidth() / (double)refImg.getHeight()};
 
+        ImageView imageViewOrginal = new ImageView();
+        imageViewOrginal.setFitHeight(height[0]);
+        imageViewOrginal.setFitWidth(width[0]);
+        imageViewOrginal.setImage(convertToFxImage(refImg));
 
-        ImageView imageView = new ImageView();
-        imageView.setFitHeight(height[0]);
-        imageView.setFitWidth(width[0]);
-        imageView.setImage(convertToFxImage(refImg));
-
-        //TODO tutaj dodać metodę wyliczajacą próg - metoda Otsu
-        //ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth());
-        //convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
-
-
+        ImageView imageViewNiBlack = new ImageView();
+        imageViewNiBlack.setFitHeight(height[0]);
+        imageViewNiBlack.setFitWidth(width[0]);
+        imageNiBlack = NiBlack.binarize(refImg, 3);
+        final Image[] imageN = {convertToFxImage(imageNiBlack)};
+        imageViewNiBlack.setImage(imageN[0]);
 
         ImageView imageViewStretch = new ImageView();
         imageViewStretch.setFitHeight(height[0]);
@@ -99,28 +73,17 @@ public class HelloApplication extends Application {
         final Image[] imageS = {convertToFxImage(imageStretch)};
         imageViewStretch.setImage(imageS[0]);
 
-        ImageView imageViewAlign = new ImageView();
-        imageViewAlign.setFitHeight(height[0]);
-        imageViewAlign.setFitWidth(width[0]);
-        //TODO tutaj wstawić wyrówanie histogramu
-        imageAlign = HistogramAlignUtil.alignHistogram(refImg);
-        final Image[] imageAl = {convertToFxImage(imageAlign)};
-        imageViewAlign.setImage(imageAl[0]);
-
-
-        initializeChart();
-        updateChart(refImg, imageStretch, imageAlign);
+        updateChart(refImg, imageStretch, imageNiBlack);
 
         convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
 
-        ImageView imageViewA = new ImageView();
-        imageViewA.setFitHeight(height[0]);
-        imageViewA.setFitWidth(width[0]);
-        final Image[] imageA = {convertToFxImage(imageAverage)};
-        imageViewA.setImage(imageA[0]);
+        ImageView imageViewOtsu = new ImageView();
+        imageViewOtsu.setFitHeight(height[0]);
+        imageViewOtsu.setFitWidth(width[0]);
+        final Image[] imageO = {convertToFxImage(imageOtsu)};
+        imageViewOtsu.setImage(imageO[0]);
 
         Button load = new Button("Załaduj");
-        Button save = new Button("Zapisz");
 
         load.setOnAction(new EventHandler() {
             @Override
@@ -134,59 +97,44 @@ public class HelloApplication extends Application {
                 if (inFile != null && inFile.canRead()) {
                     refImg = ImageIO.read(inFile);
 
-
                     final var copiedProps = getPropsFromImage(refImg);
-
                     refImgOriginal = copyImage(refImg, copiedProps);
                     imageStretch = copyImage(refImg, copiedProps);
-                    imageAlign = copyImage(refImg, copiedProps);
-                    imageAverage = copyImage(refImg, copiedProps);
+                    imageNiBlack = copyImage(refImg, copiedProps);
+                    imageOtsu = copyImage(refImg, copiedProps);
                 }
 
                 height[0] = 250;
                 width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
 
-                imageView.setFitHeight(height[0]);
-                imageView.setFitWidth(width[0]);
-                imageView.setImage(convertToFxImage(refImg));
+                imageViewOrginal.setFitHeight(height[0]);
+                imageViewOrginal.setFitWidth(width[0]);
+                imageViewOrginal.setImage(convertToFxImage(refImg));
 
                 imageStretch = HistogramStretchUtil.stretchHistogram(refImg);
                 imageViewStretch.setFitHeight(height[0]);
                 imageViewStretch.setFitWidth(width[0]);
                 imageViewStretch.setImage(convertToFxImage(imageStretch));
 
+                imageNiBlack = NiBlack.binarize(refImg, 3);
+                imageViewNiBlack.setFitHeight(height[0]);
+                imageViewNiBlack.setFitWidth(width[0]);
+                imageViewNiBlack.setImage(convertToFxImage(imageNiBlack));
 
-                imageAlign = HistogramAlignUtil.alignHistogram(refImg);
-                imageViewAlign.setFitHeight(height[0]);
-                imageViewAlign.setFitWidth(width[0]);
-                imageViewAlign.setImage(convertToFxImage(imageAlign));
-
-                updateChart(refImg, imageStretch, imageAlign);
+                updateChart(refImg, imageStretch, imageNiBlack);
                 convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
 
-                imageViewA.setFitHeight(height[0]);
-                imageViewA.setFitWidth(width[0]);
-                imageViewA.setImage(convertToFxImage(imageAverage));
+                imageViewOtsu.setFitHeight(height[0]);
+                imageViewOtsu.setFitWidth(width[0]);
+                imageViewOtsu.setImage(convertToFxImage(imageOtsu));
             }
         });
 
-        save.setOnAction(new EventHandler() {
-            @Override
-            public void handle(Event event) {
-                File outputFile = new File("wynik"+".png");
-                BufferedImage bImage = SwingFXUtils.fromFXImage(convertToFxImage(imageAverage), null);
-                try {
-                    ImageIO.write(bImage, "png", outputFile);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
 
         Slider slider = new Slider();
-        slider.setMin(-100);
-        slider.setMax(100);
-        slider.setValue(0);
+        slider.setMin(1);
+        slider.setMax(20);
+        slider.setValue(3);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setBlockIncrement(10);
@@ -198,26 +146,24 @@ public class HelloApplication extends Application {
                             Number oldValue,
                             Number newValue) {
 
-//                        convertToBinarization(refImg, (double) newValue);
-//                        imageA[0] = convertToFxImage(imageAverage);
-//                        imageViewA.setImage(imageA[0]);
-                        
-                        imageView.setImage(convertToFxImage(exposure(refImg, (double) newValue)));
-                        updateChart(refImg, imageStretch, imageAlign);
+                        imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue)));
                     }
                 });
 
+        Text labelOrginal = new Text("Orginał");
+        Text labelOtsu = new Text("Otsu");
+        Text labelNiBlack = new Text("NiBlack");
         VBox vBox1 = new VBox();
-        vBox1.getChildren().addAll(imageViewA, slider, load, save);
+        vBox1.getChildren().addAll(labelOrginal, imageViewOrginal, load);
         VBox vBox2 = new VBox();
-        vBox2.getChildren().addAll(imageView, imageViewStretch, imageViewAlign);
+        vBox2.getChildren().addAll(labelOtsu, imageViewOtsu);
         VBox vBox3 = new VBox();
-        vBox3.getChildren().addAll(chartHistogram, chartHistogramStretch, chartHistogramAlign);
+        vBox3.getChildren().addAll(labelNiBlack, imageViewNiBlack, slider);
         HBox hBox = new HBox();
         hBox.getChildren().addAll(vBox1, vBox2, vBox3);
         Group root = new Group(hBox);
-        Scene scene = new Scene(root, 1000, 780);
-        stage.setTitle("Binaryzacja i Histogram");
+        Scene scene = new Scene(root, 1200, 480);
+        stage.setTitle("Binaryzacja");
         stage.setScene(scene);
         stage.show();
     }
@@ -273,86 +219,11 @@ public class HelloApplication extends Application {
                 int iR = (( iRet & 0xff0000) >> 16);
                 int iAve = ( iR + iG + iB ) / 3;
 
-                processChannel(value, row, col, iAve, imageAverage, 0, 0xffffff);
+                processChannel(value, row, col, iAve, imageOtsu, 0, 0xffffff);
             }
         }
     }
 
-    private static void initializeChart() {
-        var xAxis = new CategoryAxis();
-        var yAxis = new NumberAxis();
-        var xAxis2 = new CategoryAxis();
-        var yAxis2 = new NumberAxis();
-        var xAxis3 = new CategoryAxis();
-        var yAxis3 = new NumberAxis();
-
-        chartHistogram = new LineChart<>(xAxis, yAxis);
-        chartHistogramStretch = new LineChart<>(xAxis2, yAxis2);
-        chartHistogramAlign = new LineChart<>(xAxis3, yAxis3);
-
-        chartHistogram.setMaxWidth(450);
-        chartHistogram.setMaxHeight(250);
-        chartHistogram.setAnimated(false);
-
-        chartHistogramStretch.setMaxWidth(450);
-        chartHistogramStretch.setMaxHeight(250);
-        chartHistogramStretch.setAnimated(false);
-
-        chartHistogramAlign.setMaxWidth(450);
-        chartHistogramAlign.setMaxHeight(250);
-        chartHistogramAlign.setAnimated(false);
-
-        chartHistogram.setCreateSymbols(false);
-        chartHistogram.setHorizontalGridLinesVisible(false);
-        chartHistogram.setVerticalGridLinesVisible(false);
-
-        chartHistogramStretch.setCreateSymbols(false);
-        chartHistogramStretch.setHorizontalGridLinesVisible(false);
-        chartHistogramStretch.setVerticalGridLinesVisible(false);
-
-        chartHistogramAlign.setCreateSymbols(false);
-        chartHistogramAlign.setHorizontalGridLinesVisible(false);
-        chartHistogramAlign.setVerticalGridLinesVisible(false);
-
-        seriesAverage   = new XYChart.Series<>();
-        seriesRed       = new XYChart.Series<>();
-        seriesGreen     = new XYChart.Series<>();
-        seriesBlue      = new XYChart.Series<>();
-
-        seriesAverageStretch   = new XYChart.Series<>();
-        seriesRedStretch       = new XYChart.Series<>();
-        seriesGreenStretch     = new XYChart.Series<>();
-        seriesBlueStretch      = new XYChart.Series<>();
-
-        seriesAverageAlign   = new XYChart.Series<>();
-        seriesRedAlign       = new XYChart.Series<>();
-        seriesGreenAlign     = new XYChart.Series<>();
-        seriesBlueAlign      = new XYChart.Series<>();
-
-        seriesAverage.setName("average");
-        seriesRed.setName("red");
-        seriesGreen.setName("green");
-        seriesBlue.setName("blue");
-
-        seriesAverageStretch.setName("average");
-        seriesRedStretch.setName("red");
-        seriesGreenStretch.setName("green");
-        seriesBlueStretch.setName("blue");
-
-        seriesAverageAlign.setName("average");
-        seriesRedAlign.setName("red");
-        seriesGreenAlign.setName("green");
-        seriesBlueAlign.setName("blue");
-
-        chartHistogram.getData().addAll(
-                List.of(seriesRed, seriesAverage, seriesGreen, seriesBlue));
-
-        chartHistogramStretch.getData().addAll(
-                List.of(seriesRedStretch, seriesAverageStretch, seriesGreenStretch, seriesBlueStretch));
-
-        chartHistogramAlign.getData().addAll(
-                List.of(seriesRedAlign, seriesAverageAlign, seriesGreenAlign, seriesBlueAlign));
-    }
 
     private static void updateChart(BufferedImage image, BufferedImage imageStretch, BufferedImage imageAlign) {
 
@@ -381,18 +252,6 @@ public class HelloApplication extends Application {
             }
         }
 
-        seriesRed.getData().clear();
-        seriesGreen.getData().clear();
-        seriesBlue.getData().clear();
-        seriesAverage.getData().clear();
-
-        for (int i = 0; i < 256; i++) {
-            seriesRed.getData().add(new XYChart.Data<>(String.valueOf(i), histogramRed[i]));
-            seriesGreen.getData().add(new XYChart.Data<>(String.valueOf(i), histogramGreen[i]));
-            seriesBlue.getData().add(new XYChart.Data<>(String.valueOf(i), histogramBlue[i]));
-            seriesAverage.getData().add(new XYChart.Data<>(String.valueOf(i), histogramAverage[i]));
-        }
-
         histogramGreen = new int[256];
         histogramRed = new int[256];
         histogramBlue = new int[256];
@@ -415,18 +274,6 @@ public class HelloApplication extends Application {
                 ++histogramBlue[iB];
                 ++histogramAverage[iAve];
             }
-        }
-
-        seriesRedStretch.getData().clear();
-        seriesGreenStretch.getData().clear();
-        seriesBlueStretch.getData().clear();
-        seriesAverageStretch.getData().clear();
-
-        for (int i = 0; i < 256; i++) {
-            seriesRedStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramRed[i]));
-            seriesGreenStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramGreen[i]));
-            seriesBlueStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramBlue[i]));
-            seriesAverageStretch.getData().add(new XYChart.Data<>(String.valueOf(i), histogramAverage[i]));
         }
 
         histogramGreen = new int[256];
@@ -453,17 +300,6 @@ public class HelloApplication extends Application {
             }
         }
 
-        seriesRedAlign.getData().clear();
-        seriesGreenAlign.getData().clear();
-        seriesBlueAlign.getData().clear();
-        seriesAverageAlign.getData().clear();
-
-        for (int i = 0; i < 256; i++) {
-            seriesRedAlign.getData().add(new XYChart.Data<>(String.valueOf(i), histogramRed[i]));
-            seriesGreenAlign.getData().add(new XYChart.Data<>(String.valueOf(i), histogramGreen[i]));
-            seriesBlueAlign.getData().add(new XYChart.Data<>(String.valueOf(i), histogramBlue[i]));
-            seriesAverageAlign.getData().add(new XYChart.Data<>(String.valueOf(i), histogramAverage[i]));
-        }
 
     }
 

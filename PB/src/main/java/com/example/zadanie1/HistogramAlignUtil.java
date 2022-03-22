@@ -21,7 +21,7 @@ public class HistogramAlignUtil {
             for (int col = 0; col < image.getHeight(); col++) {
                 int iRet = imageOrginal.getRGB(row, col);
 
-                int iR = LUTred[(( iRet & 0xff0000) >> 16)] ;
+                int iR = LUTred[(( iRet & 0xff0000) >> 16)];
                 int iG = LUTgreen[(( iRet & 0x00ff00) >> 8)];
                 int iB = LUTblue[(iRet & 0xff)];
 
