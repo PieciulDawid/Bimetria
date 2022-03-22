@@ -7,7 +7,7 @@ public class NiBlack {
     private static int width;
     private static int height;
 
-    public static BufferedImage binarize(BufferedImage imageOrginal, double inputWindow) {
+    public static BufferedImage binarize(BufferedImage imageOrginal, double inputWindow, double k1) {
 
         width = imageOrginal.getWidth();
         height = imageOrginal.getHeight();
@@ -61,7 +61,7 @@ public class NiBlack {
                 int pixelB = pixelRgb & 0xff;
                 int pixelA = (pixelR + pixelG + pixelB) / 3;
                 double average = sum / area;
-                double k = -1.5;
+                double k = k1;
 
                 //***********************************//
 

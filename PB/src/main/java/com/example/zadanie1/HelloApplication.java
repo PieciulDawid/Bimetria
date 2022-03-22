@@ -20,14 +20,12 @@ import javafx.stage.Stage;
 import javafx.scene.control.Button;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import javafx.embed.swing.SwingFXUtils;
 import lombok.SneakyThrows;
 
 public class HelloApplication extends Application {
@@ -62,7 +60,7 @@ public class HelloApplication extends Application {
         ImageView imageViewNiBlack = new ImageView();
         imageViewNiBlack.setFitHeight(height[0]);
         imageViewNiBlack.setFitWidth(width[0]);
-        imageNiBlack = NiBlack.binarize(refImg, 3);
+        imageNiBlack = NiBlack.binarize(refImg, 3, -1.5);
         final Image[] imageN = {convertToFxImage(imageNiBlack)};
         imageViewNiBlack.setImage(imageN[0]);
 
@@ -116,7 +114,7 @@ public class HelloApplication extends Application {
                 imageViewStretch.setFitWidth(width[0]);
                 imageViewStretch.setImage(convertToFxImage(imageStretch));
 
-                imageNiBlack = NiBlack.binarize(refImg, 3);
+                imageNiBlack = NiBlack.binarize(refImg, 3, -1.5);
                 imageViewNiBlack.setFitHeight(height[0]);
                 imageViewNiBlack.setFitWidth(width[0]);
                 imageViewNiBlack.setImage(convertToFxImage(imageNiBlack));
@@ -145,7 +143,7 @@ public class HelloApplication extends Application {
                             ObservableValue<? extends Number> observable,
                             Number oldValue,
                             Number newValue) {
-                        imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue / 2)));
+                        imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue / 2, -1.5)));
                     }
                 });
 
