@@ -75,7 +75,7 @@ public class ThresholdingUtil {
 					_pixelCount - lessThenThresholdCount);
 			
 			
-			return -(entropy1 - entropy0);
+			return - Math.abs(entropy1 - entropy0);
 		};
 		
 		return findThresholdWithHighestMeasure(histogramData, pixelCount, measureCalculator);

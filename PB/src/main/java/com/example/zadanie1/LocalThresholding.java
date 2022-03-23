@@ -5,17 +5,13 @@ import java.util.function.DoubleBinaryOperator;
 
 public class LocalThresholding {
 
-
-    private static int width;
-    private static int height;
-
     public static BufferedImage apply(
             BufferedImage imageOrginal,
             double inputWindow,
             DoubleBinaryOperator calculateLocalThreshold) {
-
-        width = imageOrginal.getWidth();
-        height = imageOrginal.getHeight();
+    
+        int width = imageOrginal.getWidth();
+        int height = imageOrginal.getHeight();
 
         int window = (int) inputWindow;
 
@@ -66,14 +62,11 @@ public class LocalThresholding {
                 int pixelB = pixelRgb & 0xff;
                 int pixelA = (pixelR + pixelG + pixelB) / 3;
                 double average = sum / area;
-    
-                //***********************************//
-    
-                //Wzór Sauvola
-                double Sauvola = calculateLocalThreshold.applyAsDouble(SD, average);
-    
-                //***********************************//
-                if (pixelA > Sauvola)
+                
+                
+                double threshold = calculateLocalThreshold.applyAsDouble(SD, average);
+                
+                if (pixelA > threshold)
                     img.setRGB(column, row, 0xffffff);
                 else
                     img.setRGB(column, row, 0x000000);
