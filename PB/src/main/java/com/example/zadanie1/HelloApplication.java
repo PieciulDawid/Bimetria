@@ -38,6 +38,7 @@ public class HelloApplication extends Application {
     public static BufferedImage imageNiBlack;
     public static BufferedImage imageKapurs;
     public static BufferedImage imageLuWu;
+    public static BufferedImage imagePhansalkar;
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
     public static File inFile;
@@ -53,6 +54,7 @@ public class HelloApplication extends Application {
         imageKapurs = ImageIO.read(inFile);
         imageLuWu = ImageIO.read(inFile);
         imageOtsu = ImageIO.read(inFile);
+        imagePhansalkar = ImageIO.read(inFile);
 
         final double[] height = {250};
         final double[] width = {250 * refImg.getWidth() / (double)refImg.getHeight()};
@@ -75,6 +77,13 @@ public class HelloApplication extends Application {
         imageSauvola = LocalThresholding.apply(refImg, 3, (SD1, average1) -> average1 * (1 + 0.5 * ((SD1 / 128) - 1)));
         final Image[] imageS = {convertToFxImage(imageSauvola)};
         imageViewSauvola.setImage(imageS[0]);
+
+        ImageView imageViewPhansalkar = new ImageView();
+        imageViewPhansalkar.setFitHeight(height[0]);
+        imageViewPhansalkar.setFitWidth(width[0]);
+        imagePhansalkar = LocalThresholding.apply(refImg, 3, (SD1, average1) ->  average1 *  (1 + 3 * Math.exp(-10 * average1) + (0.25 * (SD1 / 3 - 1))));
+        final Image[] imageP = {convertToFxImage(imagePhansalkar)};
+        imageViewPhansalkar.setImage(imageP[0]);
 
         updateChart(refImg, imageSauvola, imageNiBlack);
 
@@ -121,6 +130,7 @@ public class HelloApplication extends Application {
                     imageOtsu = copyImage(refImg, copiedProps);
                     imageKapurs = copyImage(refImg, copiedProps);
                     imageLuWu = copyImage(refImg, copiedProps);
+                    imagePhansalkar = copyImage(refImg, copiedProps);
                 }
 
                 slider.setValue(3);
@@ -140,6 +150,11 @@ public class HelloApplication extends Application {
                 imageViewNiBlack.setFitHeight(height[0]);
                 imageViewNiBlack.setFitWidth(width[0]);
                 imageViewNiBlack.setImage(convertToFxImage(imageNiBlack));
+
+                imagePhansalkar = LocalThresholding.apply(refImg, 3, (SD1, average1) ->  average1 *  (1 + 3 * Math.exp(-10 * average1) + (0.25 * (SD1 / 1.5 - 1))));
+                imageViewPhansalkar.setFitHeight(height[0]);
+                imageViewPhansalkar.setFitWidth(width[0]);
+                imageViewPhansalkar.setImage(convertToFxImage(imagePhansalkar));
 
                 updateChart(refImg, imageSauvola, imageNiBlack);
                 convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
@@ -197,6 +212,8 @@ public class HelloApplication extends Application {
                                 (SD1, average1) -> average1 + -1.5 * SD1)));
                         imageViewSauvola.setImage(convertToFxImage(LocalThresholding.apply(refImg, (double) newValue / 2,
                                 (SD1, average1) -> average1 * (1 + 0.5 * ((SD1 / 128) - 1)))));
+                        imageViewPhansalkar.setImage(convertToFxImage(LocalThresholding.apply(refImg, (double) newValue / 2,
+                                (SD1, average1) ->  average1 *  (1 + 3 * Math.exp(-10 * average1) + (0.25 * (SD1 / 1.5 - 1))))));
                     }
                 });
 
@@ -206,6 +223,7 @@ public class HelloApplication extends Application {
         Text labelSauvola = new Text("Sauvola");
         Text labelKapurs = new Text("Kapurs");
         Text labelLuWu = new Text("LuWu");
+        Text labelPhansalkar = new Text("Phansalkar");
 
         VBox vBox1 = new VBox();
         vBox1.getChildren().addAll(labelOrginal, imageViewOrginal, load);
@@ -227,9 +245,9 @@ public class HelloApplication extends Application {
         VBox vBox5 = new VBox();
         vBox5.getChildren().addAll(labelKapurs, imageViewKapurs, labelLuWu, imageViewLuWu);
         VBox vBox6 = new VBox();
-        vBox6.getChildren().addAll();
+        vBox6.getChildren().addAll(labelPhansalkar, imageViewPhansalkar);
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2, vBox3, vBox4, vBox5, vBox6);
+        hBox.getChildren().addAll(vBox1, vBox2, vBox3, vBox4, vBox6, vBox5);
         Group root = new Group(hBox);
         Scene scene = new Scene(root, 1500, 600, Color.LIGHTGRAY);
         stage.setTitle("Binaryzacja");
