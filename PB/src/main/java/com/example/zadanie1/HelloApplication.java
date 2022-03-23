@@ -8,7 +8,6 @@ import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
@@ -61,14 +60,14 @@ public class HelloApplication extends Application {
         ImageView imageViewNiBlack = new ImageView();
         imageViewNiBlack.setFitHeight(height[0]);
         imageViewNiBlack.setFitWidth(width[0]);
-        imageNiBlack = NiBlack.binarize(refImg, 3, -1.5);
+        imageNiBlack = LocalThresholding.apply(refImg, 3, (SD1, average1) -> average1 + -1.5 * SD1);
         final Image[] imageN = {convertToFxImage(imageNiBlack)};
         imageViewNiBlack.setImage(imageN[0]);
 
         ImageView imageViewSauvola = new ImageView();
         imageViewSauvola.setFitHeight(height[0]);
         imageViewSauvola.setFitWidth(width[0]);
-        imageSauvola = Sauvola.binarize(refImg, 3, 0.5, 128);
+        imageSauvola = LocalThresholding.apply(refImg, 3, (SD1, average1) -> average1 * (1 + 0.5 * ((SD1 / 128) - 1)));
         final Image[] imageS = {convertToFxImage(imageSauvola)};
         imageViewSauvola.setImage(imageS[0]);
 
@@ -112,12 +111,12 @@ public class HelloApplication extends Application {
                 imageViewOrginal.setFitWidth(width[0]);
                 imageViewOrginal.setImage(convertToFxImage(refImg));
 
-                imageSauvola = Sauvola.binarize(refImg, 3, 0.5, 128);
+                imageSauvola = LocalThresholding.apply(refImg, 3, (SD1, average1) -> average1 * (1 + 0.5 * ((SD1 / 128) - 1)));
                 imageViewSauvola.setFitHeight(height[0]);
                 imageViewSauvola.setFitWidth(width[0]);
                 imageViewSauvola.setImage(convertToFxImage(imageSauvola));
 
-                imageNiBlack = NiBlack.binarize(refImg, 3, -1.5);
+                imageNiBlack = LocalThresholding.apply(refImg, 3, (SD1, average1) -> average1 + -1.5 * SD1);
                 imageViewNiBlack.setFitHeight(height[0]);
                 imageViewNiBlack.setFitWidth(width[0]);
                 imageViewNiBlack.setImage(convertToFxImage(imageNiBlack));
@@ -162,8 +161,10 @@ public class HelloApplication extends Application {
                             Number oldValue,
                             Number newValue) {
 
-                        imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue / 2, -1.5)));
-                        imageViewSauvola.setImage(convertToFxImage(Sauvola.binarize(refImg, (double) newValue / 2, 0.5, 128)));
+                        imageViewNiBlack.setImage(convertToFxImage(LocalThresholding.apply(refImg, (double) newValue / 2,
+                                (SD1, average1) -> average1 + -1.5 * SD1)));
+                        imageViewSauvola.setImage(convertToFxImage(LocalThresholding.apply(refImg, (double) newValue / 2,
+                                (SD1, average1) -> average1 * (1 + 0.5 * ((SD1 / 128) - 1)))));
                     }
                 });
 
