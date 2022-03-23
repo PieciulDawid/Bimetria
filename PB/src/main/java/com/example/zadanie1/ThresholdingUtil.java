@@ -90,11 +90,11 @@ public class ThresholdingUtil {
 		double valueOfMax = 0;
 		int indexOfMax = 0;
 		
-		int lessThenThresholdCount = 0;
+		int lessThenThresholdCount = histogramData[0];
 		
 		
 		for (int currThreshold = 1; currThreshold < histogramData.length; currThreshold++) {
-			lessThenThresholdCount += histogramData[currThreshold];
+			lessThenThresholdCount += histogramData[currThreshold - 1];
 			
 			double currMeasureValue = measureCalculator.calculate(histogramData, pixelCount, lessThenThresholdCount, currThreshold);
 			
