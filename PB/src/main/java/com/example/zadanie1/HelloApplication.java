@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
@@ -41,7 +42,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "zdjecie.jpeg";
+        String fileName = "gazeta.jpg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
@@ -67,7 +68,7 @@ public class HelloApplication extends Application {
         ImageView imageViewSauvola = new ImageView();
         imageViewSauvola.setFitHeight(height[0]);
         imageViewSauvola.setFitWidth(width[0]);
-        imageSauvola = Sauvola.binarize(refImg, 3, -1.5, 128);
+        imageSauvola = Sauvola.binarize(refImg, 3, 0.5, 128);
         final Image[] imageS = {convertToFxImage(imageSauvola)};
         imageViewSauvola.setImage(imageS[0]);
 
@@ -82,6 +83,7 @@ public class HelloApplication extends Application {
         imageViewOtsu.setImage(imageO[0]);
 
         Button load = new Button("Załaduj");
+        Slider slider = new Slider();
 
         load.setOnAction(new EventHandler() {
             @Override
@@ -102,6 +104,7 @@ public class HelloApplication extends Application {
                     imageOtsu = copyImage(refImg, copiedProps);
                 }
 
+                slider.setValue(3);
                 height[0] = 250;
                 width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
 
@@ -109,7 +112,7 @@ public class HelloApplication extends Application {
                 imageViewOrginal.setFitWidth(width[0]);
                 imageViewOrginal.setImage(convertToFxImage(refImg));
 
-                imageSauvola = Sauvola.binarize(refImg, 3, -1.5, 128);
+                imageSauvola = Sauvola.binarize(refImg, 3, 0.5, 128);
                 imageViewSauvola.setFitHeight(height[0]);
                 imageViewSauvola.setFitWidth(width[0]);
                 imageViewSauvola.setImage(convertToFxImage(imageSauvola));
@@ -128,8 +131,23 @@ public class HelloApplication extends Application {
             }
         });
 
+//        TextField textFieldWindowN = new TextField();
+//        TextField textFieldK = new TextField();
+//
+//        Button play = new Button("Przelicz");
+//        play.setOnAction(new EventHandler() {
+//            @Override
+//            @SneakyThrows
+//            public void handle(Event event) {
+//
+//
+//                imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, Integer.parseInt(textFieldWindowN.getText()) / 2, Double.parseDouble(textFieldWindowN.getText()))));
+//                imageViewSauvola.setImage(convertToFxImage(Sauvola.binarize(refImg, Integer.parseInt(textFieldWindowN.getText()) / 2, 0.5, 128)));
+//
+//            }
+//        });
 
-        Slider slider = new Slider();
+
         slider.setMin(1);
         slider.setMax(40);
         slider.setValue(3);
@@ -143,6 +161,7 @@ public class HelloApplication extends Application {
                             ObservableValue<? extends Number> observable,
                             Number oldValue,
                             Number newValue) {
+
                         imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue / 2, -1.5)));
                         imageViewSauvola.setImage(convertToFxImage(Sauvola.binarize(refImg, (double) newValue / 2, 0.5, 128)));
                     }
@@ -152,12 +171,22 @@ public class HelloApplication extends Application {
         Text labelOtsu = new Text("Otsu");
         Text labelNiBlack = new Text("NiBlack");
         Text labelSauvola= new Text("Sauvola");
+
         VBox vBox1 = new VBox();
         vBox1.getChildren().addAll(labelOrginal, imageViewOrginal, load);
         VBox vBox2 = new VBox();
         vBox2.getChildren().addAll(labelOtsu, imageViewOtsu);
         VBox vBox3 = new VBox();
-        vBox3.getChildren().addAll(labelNiBlack, imageViewNiBlack, slider);
+
+//        HBox hBoxWindowN = new HBox();
+//        Text labelWindowN= new Text("Window: ");
+//        hBoxWindowN.getChildren().addAll(labelWindowN, textFieldWindowN);
+//
+//        HBox hBoxK = new HBox();
+//        Text labelK= new Text("K: ");
+//        hBoxK.getChildren().addAll(labelK, textFieldK);
+
+        vBox3.getChildren().addAll(labelNiBlack, imageViewNiBlack, slider/*, hBoxWindowN, hBoxK, play*/);
         VBox vBox4 = new VBox();
         vBox4.getChildren().addAll(labelSauvola, imageViewSauvola);
         HBox hBox = new HBox();
