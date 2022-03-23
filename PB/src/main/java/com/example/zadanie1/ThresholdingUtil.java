@@ -90,7 +90,7 @@ public class ThresholdingUtil {
 		double valueOfMax = 0;
 		int indexOfMax = 0;
 		
-		int lessThenThresholdCount = histogramData[0];
+		int lessThenThresholdCount = 0;
 		
 		
 		for (int currThreshold = 1; currThreshold < histogramData.length; currThreshold++) {
