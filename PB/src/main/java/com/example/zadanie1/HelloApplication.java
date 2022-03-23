@@ -14,6 +14,7 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -35,18 +36,22 @@ public class HelloApplication extends Application {
     public static BufferedImage imageOtsu;
     public static BufferedImage imageSauvola;
     public static BufferedImage imageNiBlack;
+    public static BufferedImage imageKapurs;
+    public static BufferedImage imageLuWu;
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
     public static File inFile;
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "gazeta.jpg";
+        String fileName = "zdjecie.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
         imageSauvola = ImageIO.read(inFile);
         imageNiBlack = ImageIO.read(inFile);
+        imageKapurs = ImageIO.read(inFile);
+        imageLuWu = ImageIO.read(inFile);
         imageOtsu = ImageIO.read(inFile);
 
         final double[] height = {250};
@@ -73,13 +78,26 @@ public class HelloApplication extends Application {
 
         updateChart(refImg, imageSauvola, imageNiBlack);
 
-        convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+        convertToBinarization(refImg, ThresholdingUtil.findThresholdForKapurs(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+        ImageView imageViewKapurs = new ImageView();
+        imageViewKapurs.setFitHeight(height[0]);
+        imageViewKapurs.setFitWidth(width[0]);
+        final Image[] imageK = {convertToFxImage(imageKapurs)};
+        imageViewKapurs.setImage(imageK[0]);
 
+        convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
         ImageView imageViewOtsu = new ImageView();
         imageViewOtsu.setFitHeight(height[0]);
         imageViewOtsu.setFitWidth(width[0]);
         final Image[] imageO = {convertToFxImage(imageOtsu)};
         imageViewOtsu.setImage(imageO[0]);
+
+        convertToBinarization(refImg, ThresholdingUtil.findThresholdForLuWu(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+        ImageView imageViewLuWu = new ImageView();
+        imageViewLuWu.setFitHeight(height[0]);
+        imageViewLuWu.setFitWidth(width[0]);
+        final Image[] imageL = {convertToFxImage(imageLuWu)};
+        imageViewLuWu.setImage(imageL[0]);
 
         Button load = new Button("Załaduj");
         Slider slider = new Slider();
@@ -101,6 +119,8 @@ public class HelloApplication extends Application {
                     imageSauvola = copyImage(refImg, copiedProps);
                     imageNiBlack = copyImage(refImg, copiedProps);
                     imageOtsu = copyImage(refImg, copiedProps);
+                    imageKapurs = copyImage(refImg, copiedProps);
+                    imageLuWu = copyImage(refImg, copiedProps);
                 }
 
                 slider.setValue(3);
@@ -127,6 +147,18 @@ public class HelloApplication extends Application {
                 imageViewOtsu.setFitHeight(height[0]);
                 imageViewOtsu.setFitWidth(width[0]);
                 imageViewOtsu.setImage(convertToFxImage(imageOtsu));
+
+                convertToBinarization(refImg, ThresholdingUtil.findThresholdForKapurs(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+
+                imageViewKapurs.setFitHeight(height[0]);
+                imageViewKapurs.setFitWidth(width[0]);
+                imageViewKapurs.setImage(convertToFxImage(imageKapurs));
+
+                convertToBinarization(refImg, ThresholdingUtil.findThresholdForLuWu(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
+
+                imageViewLuWu.setFitHeight(height[0]);
+                imageViewLuWu.setFitWidth(width[0]);
+                imageViewLuWu.setImage(convertToFxImage(imageLuWu));
             }
         });
 
@@ -171,7 +203,9 @@ public class HelloApplication extends Application {
         Text labelOrginal = new Text("Orginał");
         Text labelOtsu = new Text("Otsu");
         Text labelNiBlack = new Text("NiBlack");
-        Text labelSauvola= new Text("Sauvola");
+        Text labelSauvola = new Text("Sauvola");
+        Text labelKapurs = new Text("Kapurs");
+        Text labelLuWu = new Text("LuWu");
 
         VBox vBox1 = new VBox();
         vBox1.getChildren().addAll(labelOrginal, imageViewOrginal, load);
@@ -187,13 +221,17 @@ public class HelloApplication extends Application {
 //        Text labelK= new Text("K: ");
 //        hBoxK.getChildren().addAll(labelK, textFieldK);
 
-        vBox3.getChildren().addAll(labelNiBlack, imageViewNiBlack, slider/*, hBoxWindowN, hBoxK, play*/);
+        vBox3.getChildren().addAll(labelNiBlack, imageViewNiBlack,labelSauvola, imageViewSauvola, slider/*, hBoxWindowN, hBoxK, play*/);
         VBox vBox4 = new VBox();
-        vBox4.getChildren().addAll(labelSauvola, imageViewSauvola);
+        vBox4.getChildren().addAll();
+        VBox vBox5 = new VBox();
+        vBox5.getChildren().addAll(labelKapurs, imageViewKapurs, labelLuWu, imageViewLuWu);
+        VBox vBox6 = new VBox();
+        vBox6.getChildren().addAll();
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2, vBox3, vBox4);
+        hBox.getChildren().addAll(vBox1, vBox2, vBox3, vBox4, vBox5, vBox6);
         Group root = new Group(hBox);
-        Scene scene = new Scene(root, 1200, 480);
+        Scene scene = new Scene(root, 1500, 600, Color.LIGHTGRAY);
         stage.setTitle("Binaryzacja");
         stage.setScene(scene);
         stage.show();
@@ -251,6 +289,8 @@ public class HelloApplication extends Application {
                 int iAve = ( iR + iG + iB ) / 3;
 
                 processChannel(value, row, col, iAve, imageOtsu, 0, 0xffffff);
+                processChannel(value, row, col, iAve, imageKapurs, 0, 0xffffff);
+                processChannel(value, row, col, iAve, imageLuWu, 0, 0xffffff);
             }
         }
     }
