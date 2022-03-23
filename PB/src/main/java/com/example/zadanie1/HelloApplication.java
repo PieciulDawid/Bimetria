@@ -33,7 +33,7 @@ public class HelloApplication extends Application {
     private static int[] histogramAverageData;
 
     public static BufferedImage imageOtsu;
-    public static BufferedImage imageStretch;
+    public static BufferedImage imageSauvola;
     public static BufferedImage imageNiBlack;
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
@@ -45,7 +45,7 @@ public class HelloApplication extends Application {
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
-        imageStretch = ImageIO.read(inFile);
+        imageSauvola = ImageIO.read(inFile);
         imageNiBlack = ImageIO.read(inFile);
         imageOtsu = ImageIO.read(inFile);
 
@@ -64,14 +64,14 @@ public class HelloApplication extends Application {
         final Image[] imageN = {convertToFxImage(imageNiBlack)};
         imageViewNiBlack.setImage(imageN[0]);
 
-        ImageView imageViewStretch = new ImageView();
-        imageViewStretch.setFitHeight(height[0]);
-        imageViewStretch.setFitWidth(width[0]);
-        imageStretch = HistogramStretchUtil.stretchHistogram(refImg);
-        final Image[] imageS = {convertToFxImage(imageStretch)};
-        imageViewStretch.setImage(imageS[0]);
+        ImageView imageViewSauvola = new ImageView();
+        imageViewSauvola.setFitHeight(height[0]);
+        imageViewSauvola.setFitWidth(width[0]);
+        imageSauvola = Sauvola.binarize(refImg, 3, -1.5, 128);
+        final Image[] imageS = {convertToFxImage(imageSauvola)};
+        imageViewSauvola.setImage(imageS[0]);
 
-        updateChart(refImg, imageStretch, imageNiBlack);
+        updateChart(refImg, imageSauvola, imageNiBlack);
 
         convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
 
@@ -97,7 +97,7 @@ public class HelloApplication extends Application {
 
                     final var copiedProps = getPropsFromImage(refImg);
                     refImgOriginal = copyImage(refImg, copiedProps);
-                    imageStretch = copyImage(refImg, copiedProps);
+                    imageSauvola = copyImage(refImg, copiedProps);
                     imageNiBlack = copyImage(refImg, copiedProps);
                     imageOtsu = copyImage(refImg, copiedProps);
                 }
@@ -109,17 +109,17 @@ public class HelloApplication extends Application {
                 imageViewOrginal.setFitWidth(width[0]);
                 imageViewOrginal.setImage(convertToFxImage(refImg));
 
-                imageStretch = HistogramStretchUtil.stretchHistogram(refImg);
-                imageViewStretch.setFitHeight(height[0]);
-                imageViewStretch.setFitWidth(width[0]);
-                imageViewStretch.setImage(convertToFxImage(imageStretch));
+                imageSauvola = Sauvola.binarize(refImg, 3, -1.5, 128);
+                imageViewSauvola.setFitHeight(height[0]);
+                imageViewSauvola.setFitWidth(width[0]);
+                imageViewSauvola.setImage(convertToFxImage(imageSauvola));
 
                 imageNiBlack = NiBlack.binarize(refImg, 3, -1.5);
                 imageViewNiBlack.setFitHeight(height[0]);
                 imageViewNiBlack.setFitWidth(width[0]);
                 imageViewNiBlack.setImage(convertToFxImage(imageNiBlack));
 
-                updateChart(refImg, imageStretch, imageNiBlack);
+                updateChart(refImg, imageSauvola, imageNiBlack);
                 convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
 
                 imageViewOtsu.setFitHeight(height[0]);
@@ -144,20 +144,24 @@ public class HelloApplication extends Application {
                             Number oldValue,
                             Number newValue) {
                         imageViewNiBlack.setImage(convertToFxImage(NiBlack.binarize(refImg, (double) newValue / 2, -1.5)));
+                        imageViewSauvola.setImage(convertToFxImage(Sauvola.binarize(refImg, (double) newValue / 2, 0.5, 128)));
                     }
                 });
 
         Text labelOrginal = new Text("Orginał");
         Text labelOtsu = new Text("Otsu");
         Text labelNiBlack = new Text("NiBlack");
+        Text labelSauvola= new Text("Sauvola");
         VBox vBox1 = new VBox();
         vBox1.getChildren().addAll(labelOrginal, imageViewOrginal, load);
         VBox vBox2 = new VBox();
         vBox2.getChildren().addAll(labelOtsu, imageViewOtsu);
         VBox vBox3 = new VBox();
         vBox3.getChildren().addAll(labelNiBlack, imageViewNiBlack, slider);
+        VBox vBox4 = new VBox();
+        vBox4.getChildren().addAll(labelSauvola, imageViewSauvola);
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2, vBox3);
+        hBox.getChildren().addAll(vBox1, vBox2, vBox3, vBox4);
         Group root = new Group(hBox);
         Scene scene = new Scene(root, 1200, 480);
         stage.setTitle("Binaryzacja");
