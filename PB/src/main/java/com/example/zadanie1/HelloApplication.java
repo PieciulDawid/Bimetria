@@ -45,7 +45,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "zdjecie.jpeg";
+        String fileName = "gazeta.jpg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
@@ -81,7 +81,7 @@ public class HelloApplication extends Application {
         ImageView imageViewPhansalkar = new ImageView();
         imageViewPhansalkar.setFitHeight(height[0]);
         imageViewPhansalkar.setFitWidth(width[0]);
-        imagePhansalkar = LocalThresholding.apply(refImg, 3, (SD1, average1) ->  average1 *  (1 + 3 * Math.exp(-10 * average1) + (0.25 * (SD1 / 3 - 1))));
+        imagePhansalkar = LocalThresholding.apply(refImg, 3, (SD1, average1) ->  average1 *  (1 + 0.5 * Math.exp(-10 * average1) + 0.25 * ((SD1 / 128) - 1)));
         final Image[] imageP = {convertToFxImage(imagePhansalkar)};
         imageViewPhansalkar.setImage(imageP[0]);
 
@@ -151,7 +151,7 @@ public class HelloApplication extends Application {
                 imageViewNiBlack.setFitWidth(width[0]);
                 imageViewNiBlack.setImage(convertToFxImage(imageNiBlack));
 
-                imagePhansalkar = LocalThresholding.apply(refImg, 3, (SD1, average1) ->  average1 *  (1 + 3 * Math.exp(-10 * average1) + (0.25 * (SD1 / 1.5 - 1))));
+                imagePhansalkar = LocalThresholding.apply(refImg, 3, (SD1, average1) ->  average1 *  (1 + 0.5 * Math.exp(-10 * average1) + 0.25 * ((SD1 / 128) - 1)));
                 imageViewPhansalkar.setFitHeight(height[0]);
                 imageViewPhansalkar.setFitWidth(width[0]);
                 imageViewPhansalkar.setImage(convertToFxImage(imagePhansalkar));
@@ -213,7 +213,7 @@ public class HelloApplication extends Application {
                         imageViewSauvola.setImage(convertToFxImage(LocalThresholding.apply(refImg, (double) newValue / 2,
                                 (SD1, average1) -> average1 * (1 + 0.5 * ((SD1 / 128) - 1)))));
                         imageViewPhansalkar.setImage(convertToFxImage(LocalThresholding.apply(refImg, (double) newValue / 2,
-                                (SD1, average1) ->  average1 *  (1 + 3 * Math.exp(-10 * average1) + (0.25 * (SD1 / 1.5 - 1))))));
+                                (SD1, average1) ->  average1 *  (1 + 0.5 * Math.exp(-10 * average1) + 0.25 * ((SD1 / 128) - 1)))));
                     }
                 });
 
