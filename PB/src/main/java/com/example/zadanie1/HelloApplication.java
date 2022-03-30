@@ -66,7 +66,7 @@ public class HelloApplication extends Application {
         ImageView imageViewMedian = new ImageView();
         imageViewMedian.setFitHeight(height[0]);
         imageViewMedian.setFitWidth(width[0]);
-        imagePixelation = Median.doMedian(refImg, 3);
+        imagePixelation = Median.doMedian(refImg, 1);
         final Image[] imageM = {convertToFxImage(imagePixelation)};
         imageViewMedian.setImage(imageM[0]);
 
@@ -106,7 +106,7 @@ public class HelloApplication extends Application {
                 imageViewPixelation.setFitWidth(width[0]);
                 imageViewPixelation.setImage(convertToFxImage(imagePixelation));
 
-                imageMedian = Median.doMedian(refImg, 3);
+                imageMedian = Median.doMedian(refImg, 1);
                 imageViewMedian.setFitHeight(height[0]);
                 imageViewMedian.setFitWidth(width[0]);
                 imageViewMedian.setImage(convertToFxImage(imageMedian));
@@ -120,7 +120,7 @@ public class HelloApplication extends Application {
 
         slider.setMin(1);
         slider.setMax(40);
-        slider.setValue(3);
+        slider.setValue(1);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setBlockIncrement(10);
@@ -170,7 +170,7 @@ public class HelloApplication extends Application {
         vBox3.getChildren().addAll(labelMedian, imageViewMedian, slider2);
         hBox.getChildren().addAll(vBox1, vBox2, vBox3);
         Group root = new Group(hBox);
-        Scene scene = new Scene(root, 1500, 600, Color.LIGHTGRAY);
+        Scene scene = new Scene(root, 1000, 600, Color.LIGHTGRAY);
         stage.setTitle("Binaryzacja");
         stage.setScene(scene);
         stage.show();
