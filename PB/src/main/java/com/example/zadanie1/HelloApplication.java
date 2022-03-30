@@ -36,15 +36,17 @@ public class HelloApplication extends Application {
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
     public static BufferedImage imagePixelation;
+    public static BufferedImage imageMedian;
     public static File inFile;
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "gazeta.jpg";
+        String fileName = "zdjecie3.jpeg";
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
         imagePixelation = ImageIO.read(inFile);
+        imageMedian = ImageIO.read(inFile);
 
         final double[] height = {250};
         final double[] width = {250 * refImg.getWidth() / (double)refImg.getHeight()};
@@ -61,11 +63,18 @@ public class HelloApplication extends Application {
         final Image[] imageP = {convertToFxImage(imagePixelation)};
         imageViewPixelation.setImage(imageP[0]);
 
+        ImageView imageViewMedian = new ImageView();
+        imageViewMedian.setFitHeight(height[0]);
+        imageViewMedian.setFitWidth(width[0]);
+        imagePixelation = Median.doMedian(refImg, 3);
+        final Image[] imageM = {convertToFxImage(imagePixelation)};
+        imageViewMedian.setImage(imageM[0]);
 
         updateChart(refImg);
 
         Button load = new Button("Załaduj");
         Slider slider = new Slider();
+        Slider slider2 = new Slider();
 
         load.setOnAction(new EventHandler() {
             @Override
@@ -84,6 +93,7 @@ public class HelloApplication extends Application {
                 }
 
                 slider.setValue(3);
+                slider2.setValue(1);
                 height[0] = 250;
                 width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
 
@@ -95,6 +105,11 @@ public class HelloApplication extends Application {
                 imageViewPixelation.setFitHeight(height[0]);
                 imageViewPixelation.setFitWidth(width[0]);
                 imageViewPixelation.setImage(convertToFxImage(imagePixelation));
+
+                imageMedian = Median.doMedian(refImg, 3);
+                imageViewMedian.setFitHeight(height[0]);
+                imageViewMedian.setFitWidth(width[0]);
+                imageViewMedian.setImage(convertToFxImage(imageMedian));
 
 
                 updateChart(refImg);
@@ -122,8 +137,28 @@ public class HelloApplication extends Application {
                     }
                 });
 
+        slider2.setMin(1);
+        slider2.setMax(15);
+        slider2.setValue(1);
+        slider2.setShowTickLabels(true);
+        slider2.setShowTickMarks(true);
+        slider2.setBlockIncrement(10);
+        slider2.valueProperty().addListener(
+                new ChangeListener<Number>() {
+
+                    public void changed(
+                            ObservableValue<? extends Number> observable,
+                            Number oldValue,
+                            Number newValue) {
+
+                        imageViewMedian.setImage(convertToFxImage(Median.doMedian(refImg,(double) newValue)));
+
+                    }
+                });
+
         Text labelOrginal = new Text("Orginał");
         Text labelPixelation = new Text("Pikselizacja");
+        Text labelMedian = new Text("Mediana");
 
 
         VBox vBox1 = new VBox();
@@ -131,7 +166,9 @@ public class HelloApplication extends Application {
         VBox vBox2 = new VBox();
         vBox2.getChildren().addAll(labelPixelation, imageViewPixelation, slider);
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2);
+        VBox vBox3 = new VBox();
+        vBox3.getChildren().addAll(labelMedian, imageViewMedian, slider2);
+        hBox.getChildren().addAll(vBox1, vBox2, vBox3);
         Group root = new Group(hBox);
         Scene scene = new Scene(root, 1500, 600, Color.LIGHTGRAY);
         stage.setTitle("Binaryzacja");
