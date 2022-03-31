@@ -1,21 +1,16 @@
 package com.example.zadanie1;
 
+import com.example.zadanie1.components.CaptionedImageView;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
@@ -24,8 +19,6 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
-import java.util.Hashtable;
 
 import lombok.SneakyThrows;
 
@@ -35,41 +28,52 @@ public class HelloApplication extends Application {
 
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
-    public static BufferedImage imagePixelation;
-    public static BufferedImage imageMedian;
     public static File inFile;
+    
+    private static CaptionedImageView original;
+    private static CaptionedImageView convoluted;
+    private static CaptionedImageView pixelated;
+    private static CaptionedImageView medianFiltered;
+    private static Image originalImage;
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "zdjecie3.jpeg";
+        String fileName = "PB/zdjecie2.jpeg";
+        
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
-        imagePixelation = ImageIO.read(inFile);
-        imageMedian = ImageIO.read(inFile);
 
         final double[] height = {250};
         final double[] width = {250 * refImg.getWidth() / (double)refImg.getHeight()};
-
-        ImageView imageViewOrginal = new ImageView();
-        imageViewOrginal.setFitHeight(height[0]);
-        imageViewOrginal.setFitWidth(width[0]);
-        imageViewOrginal.setImage(convertToFxImage(refImg));
-
-        ImageView imageViewPixelation = new ImageView();
-        imageViewPixelation.setFitHeight(height[0]);
-        imageViewPixelation.setFitWidth(width[0]);
-        imagePixelation = Pixelation.doPixelation(refImg, 5);
-        final Image[] imageP = {convertToFxImage(imagePixelation)};
-        imageViewPixelation.setImage(imageP[0]);
-
-        ImageView imageViewMedian = new ImageView();
-        imageViewMedian.setFitHeight(height[0]);
-        imageViewMedian.setFitWidth(width[0]);
-        imagePixelation = Median.doMedian(refImg, 1);
-        final Image[] imageM = {convertToFxImage(imagePixelation)};
-        imageViewMedian.setImage(imageM[0]);
-
+    
+        originalImage = new Image(inFile.toURI().toString());
+    
+        original = new CaptionedImageView();
+        original.setImage(originalImage);
+        original.setText("Oryginał");
+        original.setPrefImageHeight(height[0]);
+        original.setPrefImageWidth(width[0]);
+        
+        pixelated = new CaptionedImageView();
+        pixelated.setImage(Pixelation.apply(originalImage, 5));
+        pixelated.setText("Pikselizacja");
+        pixelated.setPrefImageHeight(height[0]);
+        pixelated.setPrefImageWidth(width[0]);
+    
+    
+        medianFiltered = new CaptionedImageView();
+        medianFiltered.setImage(MedianFiltration.apply(originalImage, 1));
+        medianFiltered.setText("Mediana");
+        medianFiltered.setPrefImageHeight(height[0]);
+        medianFiltered.setPrefImageWidth(width[0]);
+    
+        convoluted = new CaptionedImageView();
+        convoluted.setImage(ConvolutionalFiltration.apply(originalImage, MaskType.SOBEL));
+        convoluted.setText("Filtr konwolucyjny");
+        convoluted.setPrefImageHeight(height[0]);
+        convoluted.setPrefImageWidth(width[0]);
+        
         updateChart(refImg);
 
         Button load = new Button("Załaduj");
@@ -87,30 +91,21 @@ public class HelloApplication extends Application {
 
                 if (inFile != null && inFile.canRead()) {
                     refImg = ImageIO.read(inFile);
+                    originalImage = new Image(inFile.toURI().toString());
 
-                    final var copiedProps = getPropsFromImage(refImg);
-                    refImgOriginal = copyImage(refImg, copiedProps);
+                    final var copiedProps = ImageUtils.getPropsFromImage(refImg);
+                    refImgOriginal = ImageUtils.copyImage(refImg, copiedProps);
                 }
 
-                slider.setValue(3);
+                slider.setValue(5);
                 slider2.setValue(1);
                 height[0] = 250;
                 width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
 
-                imageViewOrginal.setFitHeight(height[0]);
-                imageViewOrginal.setFitWidth(width[0]);
-                imageViewOrginal.setImage(convertToFxImage(refImg));
-
-                imagePixelation = Pixelation.doPixelation(refImg, 5);
-                imageViewPixelation.setFitHeight(height[0]);
-                imageViewPixelation.setFitWidth(width[0]);
-                imageViewPixelation.setImage(convertToFxImage(imagePixelation));
-
-                imageMedian = Median.doMedian(refImg, 1);
-                imageViewMedian.setFitHeight(height[0]);
-                imageViewMedian.setFitWidth(width[0]);
-                imageViewMedian.setImage(convertToFxImage(imageMedian));
-
+                original.setImage(originalImage);
+                pixelated.setImage(Pixelation.apply(originalImage, 5));
+                medianFiltered.setImage(MedianFiltration.apply(originalImage, 1));
+                convoluted.setImage(ConvolutionalFiltration.apply(originalImage, MaskType.SOBEL));
 
                 updateChart(refImg);
                 convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
@@ -120,22 +115,13 @@ public class HelloApplication extends Application {
 
         slider.setMin(1);
         slider.setMax(40);
-        slider.setValue(1);
+        slider.setValue(5);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setBlockIncrement(10);
         slider.valueProperty().addListener(
-                new ChangeListener<Number>() {
-
-                    public void changed(
-                            ObservableValue<? extends Number> observable,
-                            Number oldValue,
-                            Number newValue) {
-
-                        imageViewPixelation.setImage(convertToFxImage(Pixelation.doPixelation(refImg,(double) newValue)));
-
-                    }
-                });
+                (observable, oldValue, newValue) ->
+                        pixelated.setImage(Pixelation.apply(originalImage, (double) newValue)));
 
         slider2.setMin(1);
         slider2.setMax(15);
@@ -144,70 +130,27 @@ public class HelloApplication extends Application {
         slider2.setShowTickMarks(true);
         slider2.setBlockIncrement(10);
         slider2.valueProperty().addListener(
-                new ChangeListener<Number>() {
-
-                    public void changed(
-                            ObservableValue<? extends Number> observable,
-                            Number oldValue,
-                            Number newValue) {
-
-                        imageViewMedian.setImage(convertToFxImage(Median.doMedian(refImg,(double) newValue)));
-
-                    }
-                });
-
-        Text labelOrginal = new Text("Orginał");
-        Text labelPixelation = new Text("Pikselizacja");
-        Text labelMedian = new Text("Mediana");
-
+                (observable, oldValue, newValue) ->
+                        medianFiltered.setImage(MedianFiltration.apply(originalImage,(double) newValue)));
 
         VBox vBox1 = new VBox();
-        vBox1.getChildren().addAll(labelOrginal, imageViewOrginal, load);
+        vBox1.getChildren().addAll(original, load);
         VBox vBox2 = new VBox();
-        vBox2.getChildren().addAll(labelPixelation, imageViewPixelation, slider);
-        HBox hBox = new HBox();
+        vBox2.getChildren().addAll(pixelated, slider);
         VBox vBox3 = new VBox();
-        vBox3.getChildren().addAll(labelMedian, imageViewMedian, slider2);
-        hBox.getChildren().addAll(vBox1, vBox2, vBox3);
+        vBox3.getChildren().addAll(medianFiltered, slider2);
+        
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(vBox1, vBox2, vBox3, convoluted);
+        
         Group root = new Group(hBox);
         Scene scene = new Scene(root, 1000, 600, Color.LIGHTGRAY);
         stage.setTitle("Binaryzacja");
         stage.setScene(scene);
         stage.show();
     }
-
-    public static BufferedImage copyImage(BufferedImage source, Hashtable<String, Object> copiedProps) {
-        return new BufferedImage(
-                source.getColorModel(),
-                source.copyData(null),
-                false, copiedProps);
-    }
-
-    public static Hashtable<String, Object> getPropsFromImage(BufferedImage source) {
-        final var copiedProps = new Hashtable<String, Object>();
-        if (source.getPropertyNames() != null) {
-            Arrays.stream(source.getPropertyNames()).forEachOrdered((key) -> {
-                copiedProps.put(key, source.getProperty(key));
-            });
-        }
-        return copiedProps;
-    }
-
-    private static Image convertToFxImage(BufferedImage image) {
-        WritableImage wr = null;
-        if (image != null) {
-            wr = new WritableImage(image.getWidth(), image.getHeight());
-            PixelWriter pw = wr.getPixelWriter();
-            for (int x = 0; x < image.getWidth(); x++) {
-                for (int y = 0; y < image.getHeight(); y++) {
-                    pw.setArgb(x, y, image.getRGB(x, y));
-                }
-            }
-        }
-        return new ImageView(wr).getImage();
-    }
-
-    public static void main(String[] args) {
+	
+	public static void main(String[] args) {
         launch();
     }
 

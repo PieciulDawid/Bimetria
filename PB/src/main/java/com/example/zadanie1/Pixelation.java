@@ -1,5 +1,7 @@
 package com.example.zadanie1;
 
+import javafx.scene.image.Image;
+
 import java.awt.image.BufferedImage;
 
 public class Pixelation {
@@ -7,7 +9,7 @@ public class Pixelation {
     private static int width;
     private static int height;
 
-    public static BufferedImage doPixelation(BufferedImage imageOrginal, double inputWindow){
+    public static BufferedImage apply(BufferedImage imageOrginal, double inputWindow){
 
         width = imageOrginal.getWidth();
         height = imageOrginal.getHeight();
@@ -27,5 +29,31 @@ public class Pixelation {
             }
         }
         return img;
+    }
+    
+    public static Image apply(Image image, double inputWindow) {
+    
+        final int width = (int) image.getWidth();
+        final int height = (int) image.getHeight();
+    
+        final int[] data = ImageUtils.getBinaryDataFrom(image);
+        final int dataLen = data.length;
+    
+        final int window = (int) inputWindow;
+        
+        
+        for (int rowOffset = 0; rowOffset < dataLen; rowOffset += window * width) {
+            for (int col = 0; col < width; col += window) {
+                final int repeatedPixel = data[rowOffset + col];
+                
+                for (int ji = rowOffset; (ji < rowOffset + window * width) && (ji < dataLen); ji += width) {
+                    for (int jj = col; (jj < col + window) && (jj < width); jj++) {
+                        data[ji + jj] = repeatedPixel;
+                    }
+                }
+            }
+        }
+        
+        return ImageUtils.createImage(width, height, data);
     }
 }

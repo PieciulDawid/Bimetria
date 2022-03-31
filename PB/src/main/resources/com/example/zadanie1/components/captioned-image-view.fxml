@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import com.example.zadanie1.components.CaptionedImageView?>
+<?import javafx.scene.image.ImageView?>
+
+<fx:root fx:id="root" type="CaptionedImageView"
+         xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml">
+    <Label fx:id="label"/>
+    <ImageView fx:id="image"
+               fitWidth="${root.prefImageWidth}"
+               fitHeight="${root.prefImageHeight}"/>
+
+</fx:root>
