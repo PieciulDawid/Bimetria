@@ -8,7 +8,7 @@
          xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml">
     <Label fx:id="label"/>
-    <ImageView fx:id="image"
+    <ImageView fx:id="imageView"
                fitWidth="${root.prefImageWidth}"
                fitHeight="${root.prefImageHeight}"/>
 

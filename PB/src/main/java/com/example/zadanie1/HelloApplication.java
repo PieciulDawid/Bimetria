@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import javafx.scene.control.Button;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
@@ -29,56 +30,36 @@ public class HelloApplication extends Application {
     public static BufferedImage refImg;
     public static BufferedImage refImgOriginal;
     public static File inFile;
-    
-    private static CaptionedImageView original;
-    private static CaptionedImageView convoluted;
-    private static CaptionedImageView pixelated;
-    private static CaptionedImageView medianFiltered;
+
+    private static CaptionedImageView bucketTool;
     private static Image originalImage;
 
     @Override
     public void start(Stage stage) throws IOException {
-        String fileName = "PB/zdjecie2.jpeg";
+        String fileName = "zdjecie2.jpeg";
         
         inFile = new File(fileName);
         refImg = ImageIO.read(inFile);
         refImgOriginal = ImageIO.read(inFile);
 
-        final double[] height = {250};
-        final double[] width = {250 * refImg.getWidth() / (double)refImg.getHeight()};
+        final double[] height = {550};
+        final double[] width = {550 * refImg.getWidth() / (double)refImg.getHeight()};
     
         originalImage = new Image(inFile.toURI().toString());
-    
-        original = new CaptionedImageView();
-        original.setImage(originalImage);
-        original.setText("Oryginał");
-        original.setPrefImageHeight(height[0]);
-        original.setPrefImageWidth(width[0]);
-        
-        pixelated = new CaptionedImageView();
-        pixelated.setImage(Pixelation.apply(originalImage, 5));
-        pixelated.setText("Pikselizacja");
-        pixelated.setPrefImageHeight(height[0]);
-        pixelated.setPrefImageWidth(width[0]);
-    
-    
-        medianFiltered = new CaptionedImageView();
-        medianFiltered.setImage(MedianFiltration.apply(originalImage, 1));
-        medianFiltered.setText("Mediana");
-        medianFiltered.setPrefImageHeight(height[0]);
-        medianFiltered.setPrefImageWidth(width[0]);
-    
-        convoluted = new CaptionedImageView();
-        convoluted.setImage(ConvolutionalFiltration.apply(originalImage, MaskType.SOBEL));
-        convoluted.setText("Filtr konwolucyjny");
-        convoluted.setPrefImageHeight(height[0]);
-        convoluted.setPrefImageWidth(width[0]);
+
+        bucketTool = new CaptionedImageView();
+        //bucketTool.getImageView().setOnMouseClicked(EventUtil.getPixelSelectionOnImageHandler(null));
+        bucketTool.setImage(originalImage);
+        bucketTool.setText("Magiczna różdzka");
+        bucketTool.setPrefImageHeight(height[0]);
+        bucketTool.setPrefImageWidth(width[0]);
         
         updateChart(refImg);
 
         Button load = new Button("Załaduj");
+        Button restart = new Button("Restart");
+        Button global = new Button("Globalnie");
         Slider slider = new Slider();
-        Slider slider2 = new Slider();
 
         load.setOnAction(new EventHandler() {
             @Override
@@ -98,14 +79,10 @@ public class HelloApplication extends Application {
                 }
 
                 slider.setValue(5);
-                slider2.setValue(1);
                 height[0] = 250;
                 width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
 
-                original.setImage(originalImage);
-                pixelated.setImage(Pixelation.apply(originalImage, 5));
-                medianFiltered.setImage(MedianFiltration.apply(originalImage, 1));
-                convoluted.setImage(ConvolutionalFiltration.apply(originalImage, MaskType.SOBEL));
+                bucketTool.setImage(ConvolutionalFiltration.apply(originalImage, MaskType.SOBEL));
 
                 updateChart(refImg);
                 convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
@@ -113,38 +90,32 @@ public class HelloApplication extends Application {
             }
         });
 
-        slider.setMin(1);
-        slider.setMax(40);
-        slider.setValue(5);
+        slider.setMin(0);
+        slider.setMax(255);
+        slider.setValue(0);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setBlockIncrement(10);
+/*
         slider.valueProperty().addListener(
                 (observable, oldValue, newValue) ->
                         pixelated.setImage(Pixelation.apply(originalImage, (double) newValue)));
+*/
 
-        slider2.setMin(1);
-        slider2.setMax(15);
-        slider2.setValue(1);
-        slider2.setShowTickLabels(true);
-        slider2.setShowTickMarks(true);
-        slider2.setBlockIncrement(10);
-        slider2.valueProperty().addListener(
-                (observable, oldValue, newValue) ->
-                        medianFiltered.setImage(MedianFiltration.apply(originalImage,(double) newValue)));
 
+        HBox hBox0 = new HBox();
+        hBox0.getChildren().addAll(load, restart, global, slider);
         VBox vBox1 = new VBox();
-        vBox1.getChildren().addAll(original, load);
+        vBox1.getChildren().addAll(bucketTool, hBox0);
         VBox vBox2 = new VBox();
-        vBox2.getChildren().addAll(pixelated, slider);
-        VBox vBox3 = new VBox();
-        vBox3.getChildren().addAll(medianFiltered, slider2);
-        
+        vBox2.getChildren().addAll();
+
+
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2, vBox3, convoluted);
+        hBox.getChildren().addAll(vBox1, vBox2);
         
         Group root = new Group(hBox);
-        Scene scene = new Scene(root, 1000, 600, Color.LIGHTGRAY);
+        Scene scene = new Scene(root, 500, 700, Color.LIGHTGRAY);
         stage.setTitle("Binaryzacja");
         stage.setScene(scene);
         stage.show();

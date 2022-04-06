@@ -11,8 +11,10 @@ import javafx.scene.layout.VBox;
 import lombok.SneakyThrows;
 
 public class CaptionedImageView extends VBox {
+
+
 	@FXML
-	private ImageView image;
+	private ImageView imageView;
 	
 	@FXML
 	private Label label;
@@ -34,11 +36,11 @@ public class CaptionedImageView extends VBox {
 	}
 	
 	public void setImage(Image image) {
-		this.image.setImage(image);
+		this.imageView.setImage(image);
 	}
 	
 	public Image getImage() {
-		return image.getImage();
+		return imageView.getImage();
 	}
 	
 	public void setText(String value) {
@@ -72,5 +74,12 @@ public class CaptionedImageView extends VBox {
 	public void setPrefImageWidth(double prefImageWidth) {
 		this.prefImageWidth.set(prefImageWidth);
 	}
-	
+
+	public ImageView getImageView() {
+		return imageView;
+	}
+
+	public void setImageView(ImageView imageView) {
+		this.imageView = imageView;
+	}
 }
