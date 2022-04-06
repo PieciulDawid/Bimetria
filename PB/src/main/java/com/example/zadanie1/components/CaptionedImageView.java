@@ -2,17 +2,17 @@ package com.example.zadanie1.components;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import lombok.SneakyThrows;
 
 public class CaptionedImageView extends VBox {
-
-
 	@FXML
 	private ImageView imageView;
 	
@@ -81,5 +81,9 @@ public class CaptionedImageView extends VBox {
 
 	public void setImageView(ImageView imageView) {
 		this.imageView = imageView;
+	}
+	
+	public void setOnMouseClickedOnImage(EventHandler<? super MouseEvent> value) {
+		getImageView().setOnMouseClicked(value);
 	}
 }

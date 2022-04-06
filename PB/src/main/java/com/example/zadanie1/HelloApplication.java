@@ -2,6 +2,7 @@ package com.example.zadanie1;
 
 import com.example.zadanie1.components.CaptionedImageView;
 import javafx.application.Application;
+import javafx.beans.property.DoubleProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
@@ -15,8 +16,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
@@ -24,83 +23,64 @@ import java.awt.image.BufferedImage;
 import lombok.SneakyThrows;
 
 public class HelloApplication extends Application {
-
-    private static int[] histogramAverageData;
-
-    public static BufferedImage refImg;
-    public static BufferedImage refImgOriginal;
     public static File inFile;
 
     private static CaptionedImageView bucketTool;
     private static Image originalImage;
 
     @Override
-    public void start(Stage stage) throws IOException {
-        String fileName = "zdjecie2.jpeg";
+    public void start(Stage stage) {
+        String fileName = "PB/zdjecie2.jpeg";
         
         inFile = new File(fileName);
-        refImg = ImageIO.read(inFile);
-        refImgOriginal = ImageIO.read(inFile);
-
-        final double[] height = {550};
-        final double[] width = {550 * refImg.getWidth() / (double)refImg.getHeight()};
     
         originalImage = new Image(inFile.toURI().toString());
+    
+        final double[] height = {550};
+        final double[] width = {550 * originalImage.getWidth() / originalImage.getHeight()};
 
         bucketTool = new CaptionedImageView();
-        //bucketTool.getImageView().setOnMouseClicked(EventUtil.getPixelSelectionOnImageHandler(null));
+        bucketTool.setOnMouseClickedOnImage(EventUtil.newSegmentOnClickHandler(30));
         bucketTool.setImage(originalImage);
         bucketTool.setText("Magiczna różdzka");
         bucketTool.setPrefImageHeight(height[0]);
         bucketTool.setPrefImageWidth(width[0]);
         
-        updateChart(refImg);
-
+        
         Button load = new Button("Załaduj");
         Button restart = new Button("Restart");
         Button global = new Button("Globalnie");
         Slider slider = new Slider();
 
-        load.setOnAction(new EventHandler() {
-            @Override
-            @SneakyThrows
-            public void handle(Event event) {
+        load.setOnAction(event -> {
+            
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Open Resource File");
+            inFile = fileChooser.showOpenDialog(stage);
 
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Open Resource File");
-                inFile = fileChooser.showOpenDialog(stage);
+            if (inFile != null && inFile.canRead()) {
+                originalImage = new Image(inFile.toURI().toString());
+            }
 
-                if (inFile != null && inFile.canRead()) {
-                    refImg = ImageIO.read(inFile);
-                    originalImage = new Image(inFile.toURI().toString());
+            slider.setValue(30);
+            width[0] = height[0] * originalImage.getWidth() / originalImage.getHeight();
 
-                    final var copiedProps = ImageUtils.getPropsFromImage(refImg);
-                    refImgOriginal = ImageUtils.copyImage(refImg, copiedProps);
-                }
-
-                slider.setValue(5);
-                height[0] = 250;
-                width[0] = 250 * refImg.getWidth()/(double) refImg.getHeight();
-
-                bucketTool.setImage(ConvolutionalFiltration.apply(originalImage, MaskType.SOBEL));
-
-                updateChart(refImg);
-                convertToBinarization(refImg, ThresholdingUtil.findThresholdForOtsus(histogramAverageData, refImg.getHeight()*refImg.getWidth()));
-
+            bucketTool.setImage(originalImage);
+            bucketTool.setPrefImageWidth(width[0]);
+        });
+        
+        slider.valueProperty().addListener(newValue -> {
+            if (newValue instanceof DoubleProperty d) {
+                bucketTool.setOnMouseClickedOnImage(EventUtil.newSegmentOnClickHandler((int) d.get()));
             }
         });
 
         slider.setMin(0);
         slider.setMax(255);
-        slider.setValue(0);
+        slider.setValue(30);
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
         slider.setBlockIncrement(10);
-/*
-        slider.valueProperty().addListener(
-                (observable, oldValue, newValue) ->
-                        pixelated.setImage(Pixelation.apply(originalImage, (double) newValue)));
-*/
 
 
         HBox hBox0 = new HBox();
@@ -120,8 +100,8 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
     }
-	
-	public static void main(String[] args) {
+    
+    public static void main(String[] args) {
         launch();
     }
 
@@ -152,7 +132,6 @@ public class HelloApplication extends Application {
         var histogramRed = new int[256];
         var histogramBlue = new int[256];
         var histogramAverage = new int[256];
-        histogramAverageData = histogramAverage;
 
         int width = image.getWidth();
         int height = image.getHeight();
@@ -184,7 +163,7 @@ public class HelloApplication extends Application {
     }
 
     private static BufferedImage exposure(BufferedImage image, double exposure) {
-        BufferedImage copy = refImgOriginal;
+        BufferedImage copy = ImageUtils.copyImage(image);
         
         if (exposure < 0) {
             exposure = (100 + exposure) / 100d;

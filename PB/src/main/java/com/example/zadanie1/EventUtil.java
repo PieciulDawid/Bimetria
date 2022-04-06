@@ -1,15 +1,12 @@
 package com.example.zadanie1;
 
 import javafx.event.EventHandler;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-import java.util.function.BiConsumer;
-
 public class EventUtil {
-	public static EventHandler<MouseEvent> getPixelSelectionOnImageHandler(ImageAction action) {
+	public static EventHandler<MouseEvent> newOnPixelSelectedHandler(ImageAction action) {
 		return (MouseEvent e) -> {
 			if (!e.getButton().equals(MouseButton.PRIMARY)) {
 				return;
@@ -29,6 +26,14 @@ public class EventUtil {
 			
 			action.apply(x, y, imageView);
 		};
+	}
+	
+	public static EventHandler<MouseEvent> newSegmentOnClickHandler(int tolerance) {
+		return newOnPixelSelectedHandler((x, y, imageView) -> {
+			final var newImage = Segmentation.apply(imageView.getImage(), (int) x, (int) y, tolerance);
+			
+			imageView.setImage(newImage);
+		});
 	}
 	
 	@FunctionalInterface

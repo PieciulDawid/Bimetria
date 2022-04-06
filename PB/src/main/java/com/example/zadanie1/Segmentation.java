@@ -9,17 +9,15 @@ public class Segmentation {
 		final int height = (int) image.getHeight();
 		
 		final int[] data = ImageUtils.getBinaryDataFrom(image);
-		final int dataLen = data.length;
 		
 		final int pixel = data[x + y * width];
-		final int R = (pixel & 0xFF) << 16;
-		final int G = (pixel & 0xFF) << 8;
+		final int R = pixel & 0xFF0000 >> 16;
+		final int G = pixel & 0xFF00 >> 8;
 		final int B = pixel & 0xFF;
 		
-		final int minR = R - tolerance, maxR = R - tolerance;
-		final int minG = G - tolerance, maxG = G - tolerance;
-		final int minB = B - tolerance, maxB = B - tolerance;
-		
+		final int minR = R - tolerance, maxR = R + tolerance;
+		final int minG = G - tolerance, maxG = G + tolerance;
+		final int minB = B - tolerance, maxB = B + tolerance;
 		final boolean[][] visited = new boolean[height][width];
 		recurrentFill(height, width, x, y, minR, minG, minB, maxR, maxG, maxB, data, visited);
 		
@@ -37,26 +35,26 @@ public class Segmentation {
 		visited[y][x] = true;
 		
 		final int pixel = data[x + y * width];
-		final int R = (pixel & 0xFF) << 16;
-		final int G = (pixel & 0xFF) << 8;
+		final int R = pixel & 0xFF0000 >> 16;
+		final int G = pixel & 0xFF00 >> 8;
 		final int B = pixel & 0xFF;
 		
 		if (R > maxR || R < minR || G > maxG || G < minG || B > maxB || B < minB) {
 			return;
 		}
 		
-		data[x + y * width] = 0xFFFF_FFFF;
+		data[x + y * width] = 0x0000_0000;
 		
-		if (y - 1 >= 0 && visited[y - 1][x]) {
+		if (y - 1 >= 0 && !visited[y - 1][x]) {
 			recurrentFill(height, width, x, y - 1, minR, minG, minB, maxR, maxG, maxB, data, visited);
 		}
-		if (x - 1 >= 0 && visited[y][x - 1]) {
+		if (x - 1 >= 0 && !visited[y][x - 1]) {
 			recurrentFill(height, width, x - 1, y, minR, minG, minB, maxR, maxG, maxB, data, visited);
 		}
-		if (x + 1 < width && visited[y][x + 1]) {
+		if (x + 1 < width && !visited[y][x + 1]) {
 			recurrentFill(height, width, x + 1, y, minR, minG, minB, maxR, maxG, maxB, data, visited);
 		}
-		if (y + 1 < width && visited[y][x + 1]) {
+		if (y + 1 < height && !visited[y + 1][x]) {
 			recurrentFill(height, width, x, y + 1, minR, minG, minB, maxR, maxG, maxB, data, visited);
 		}
 	}
