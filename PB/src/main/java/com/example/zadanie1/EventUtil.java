@@ -4,6 +4,7 @@ import javafx.event.EventHandler;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import lombok.val;
 
 public class EventUtil {
 	public static EventHandler<MouseEvent> newOnPixelSelectedHandler(ImageAction action) {
@@ -28,9 +29,11 @@ public class EventUtil {
 		};
 	}
 	
-	public static EventHandler<MouseEvent> newSegmentOnClickHandler(int tolerance) {
+	public static EventHandler<MouseEvent> newSegmentOnClickHandler(int tolerance, boolean global) {
+		val seg = new Segmentation(0x0000_0000, tolerance, global);
+		
 		return newOnPixelSelectedHandler((x, y, imageView) -> {
-			final var newImage = Segmentation.apply(imageView.getImage(), (int) x, (int) y, tolerance);
+			final var newImage = seg.apply(imageView.getImage(), (int) x, (int) y);
 			
 			imageView.setImage(newImage);
 		});

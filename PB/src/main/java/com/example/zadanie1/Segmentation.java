@@ -1,62 +1,146 @@
 package com.example.zadanie1;
 
 import javafx.scene.image.Image;
+import lombok.val;
+
+import java.util.ArrayDeque;
+import java.util.function.BiConsumer;
 
 public class Segmentation {
+
+	private final int fill;
 	
-	public static Image apply(Image image, int x, int y, int tolerance) {
-		final int width = (int) image.getWidth();
-		final int height = (int) image.getHeight();
-		
-		final int[] data = ImageUtils.getBinaryDataFrom(image);
-		
-		final int pixel = data[x + y * width];
-		final int R = pixel & 0xFF0000 >> 16;
-		final int G = pixel & 0xFF00 >> 8;
-		final int B = pixel & 0xFF;
-		
-		final int minR = R - tolerance, maxR = R + tolerance;
-		final int minG = G - tolerance, maxG = G + tolerance;
-		final int minB = B - tolerance, maxB = B + tolerance;
-		final boolean[][] visited = new boolean[height][width];
-		recurrentFill(height, width, x, y, minR, minG, minB, maxR, maxG, maxB, data, visited);
-		
-		return ImageUtils.createImage(width, height, data);
+	private final int tolerance;
+	
+	private final BiConsumer<Point, ProcessableImage> fillImpl;
+	
+	private int minR;
+	private int minG;
+	private int minB;
+	
+	private int maxR;
+	private int maxG;
+	private int maxB;
+	
+	public Segmentation(int fill, int tolerance, boolean global) {
+		this.fill = fill;
+		this.tolerance = tolerance;
+		this.fillImpl = global ? this::globalFill : this::localFill;
 	}
 	
-	private static void recurrentFill(
-			int height, int width,
-			int x, int y,
-			int minR, int minG, int minB,
-			int maxR, int maxG, int maxB,
-			int[] data,
-			boolean[][] visited) {
+	
+	public Image apply(Image image, int x, int y) {
+		val img = ProcessableImage.formImage(image);
 		
-		visited[y][x] = true;
+		fillImpl.accept(Point.of(x, y), img);
+
+		return img.intoImage();
+	}
+	
+	
+	private void globalFill(Point start, ProcessableImage image) {
+		initRanges(start, image);
 		
-		final int pixel = data[x + y * width];
-		final int R = pixel & 0xFF0000 >> 16;
-		final int G = pixel & 0xFF00 >> 8;
-		final int B = pixel & 0xFF;
+		val data = image.getData();
+		val dataLen = data.length;
 		
-		if (R > maxR || R < minR || G > maxG || G < minG || B > maxB || B < minB) {
-			return;
-		}
 		
-		data[x + y * width] = 0x0000_0000;
+		for (int i = 0; i < dataLen; i++) {
+			if (isOutsideToleranceRange(data, i)) {
+				continue;
+			}
+			
+			data[i] = fill;
+		}
+	}
+	
+	private void localFill(Point start, ProcessableImage image) {
+		initRanges(start, image);
 		
-		if (y - 1 >= 0 && !visited[y - 1][x]) {
-			recurrentFill(height, width, x, y - 1, minR, minG, minB, maxR, maxG, maxB, data, visited);
+		val height = image.getHeight();
+		val width = image.getWidth();
+
+		
+		val visited = new boolean[height][width];
+		val toBeColored = new ArrayDeque<Point>();
+
+		
+		toBeColored.add(start);
+		
+		visited[start.getY()][start.getX()] = true;
+		
+		
+		while (! toBeColored.isEmpty()) {
+			Point p = toBeColored.poll();
+			
+			val x = p.getX();
+			val y = p.getY();
+
+
+			if (isOutsideToleranceRange(image, p)) {
+				continue;
+			}
+
+			image.setPixelAt(p, fill);
+
+
+			if (x - 1 >= 0 && !visited[y][x - 1]) {
+				visited[y][x - 1] = true;
+				toBeColored.add(p.translatedBy(-1, 0));
+			}
+			if (y - 1 >= 0 && !visited[y - 1][x]) {
+				visited[y - 1][x] = true;
+				toBeColored.add(p.translatedBy(0, -1));
+			}
+			if (x + 1 < width && !visited[y][x + 1]) {
+				visited[y][x + 1] = true;
+				toBeColored.add(p.translatedBy(1, 0));
+			}
+			if (y + 1 < height && !visited[y + 1][x]) {
+				visited[y + 1][x] = true;
+				toBeColored.add(p.translatedBy(0, 1));
+			}
 		}
-		if (x - 1 >= 0 && !visited[y][x - 1]) {
-			recurrentFill(height, width, x - 1, y, minR, minG, minB, maxR, maxG, maxB, data, visited);
-		}
-		if (x + 1 < width && !visited[y][x + 1]) {
-			recurrentFill(height, width, x + 1, y, minR, minG, minB, maxR, maxG, maxB, data, visited);
-		}
-		if (y + 1 < height && !visited[y + 1][x]) {
-			recurrentFill(height, width, x, y + 1, minR, minG, minB, maxR, maxG, maxB, data, visited);
-		}
+
+	}
+	
+	
+	private void initRanges(Point sourcePoint, ProcessableImage image) {
+		val pixel = image.pixelAt(sourcePoint);
+		
+		val R = pixel & 0xFF0000 >> 16;
+		val G = pixel & 0xFF00 >> 8;
+		val B = pixel & 0xFF;
+		
+		minR = R - tolerance;
+		minG = G - tolerance;
+		minB = B - tolerance;
+		
+		maxR = R + tolerance;
+		maxG = G + tolerance;
+		maxB = B + tolerance;
+	}
+	
+	
+	private boolean isOutsideToleranceRange(ProcessableImage image, Point p) {
+		val currPixel = image.pixelAt(p);
+		
+		return isOutsideToleranceRangeImpl(currPixel);
+	}
+	
+	private boolean isOutsideToleranceRange(int[] data, int i) {
+		val currPixel = data[i];
+		
+		return isOutsideToleranceRangeImpl(currPixel);
+	}
+	
+	
+	private boolean isOutsideToleranceRangeImpl(int currPixel) {
+		val currR = currPixel & 0xFF0000 >> 16;
+		val currG = currPixel & 0xFF00 >> 8;
+		val currB = currPixel & 0xFF;
+		
+		return currR > maxR || currR < minR || currG > maxG || currG < minG || currB > maxB || currB < minB;
 	}
 	
 }

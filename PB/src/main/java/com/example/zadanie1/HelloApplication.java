@@ -2,12 +2,14 @@ package com.example.zadanie1;
 
 import com.example.zadanie1.components.CaptionedImageView;
 import javafx.application.Application;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -40,7 +42,7 @@ public class HelloApplication extends Application {
         final double[] width = {550 * originalImage.getWidth() / originalImage.getHeight()};
 
         bucketTool = new CaptionedImageView();
-        bucketTool.setOnMouseClickedOnImage(EventUtil.newSegmentOnClickHandler(30));
+        bucketTool.setOnMouseClickedOnImage(EventUtil.newSegmentOnClickHandler(30, false));
         bucketTool.setImage(originalImage);
         bucketTool.setText("Magiczna różdzka");
         bucketTool.setPrefImageHeight(height[0]);
@@ -48,8 +50,8 @@ public class HelloApplication extends Application {
         
         
         Button load = new Button("Załaduj");
-        Button restart = new Button("Restart");
-        Button global = new Button("Globalnie");
+        Button reset = new Button("Reset");
+        ToggleButton global = new ToggleButton("Globalnie");
         Slider slider = new Slider();
 
         load.setOnAction(event -> {
@@ -69,11 +71,17 @@ public class HelloApplication extends Application {
             bucketTool.setPrefImageWidth(width[0]);
         });
         
-        slider.valueProperty().addListener(newValue -> {
-            if (newValue instanceof DoubleProperty d) {
-                bucketTool.setOnMouseClickedOnImage(EventUtil.newSegmentOnClickHandler((int) d.get()));
-            }
-        });
+        reset.setOnAction(event -> bucketTool.setImage(originalImage));
+    
+        final InvalidationListener segmentationParametersChanged = newValue ->
+                bucketTool.setOnMouseClickedOnImage(
+                    EventUtil.newSegmentOnClickHandler(
+                            (int) slider.getValue(),
+                            global.isSelected()));
+        
+        global.selectedProperty().addListener(segmentationParametersChanged);
+        
+        slider.valueProperty().addListener(segmentationParametersChanged);
 
         slider.setMin(0);
         slider.setMax(255);
@@ -84,7 +92,7 @@ public class HelloApplication extends Application {
 
 
         HBox hBox0 = new HBox();
-        hBox0.getChildren().addAll(load, restart, global, slider);
+        hBox0.getChildren().addAll(load, reset, global, slider);
         VBox vBox1 = new VBox();
         vBox1.getChildren().addAll(bucketTool, hBox0);
         VBox vBox2 = new VBox();

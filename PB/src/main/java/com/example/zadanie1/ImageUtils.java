@@ -17,7 +17,12 @@ public class ImageUtils {
 		final int width = (int) image.getWidth();
 		final int height = (int) image.getHeight();
 		
+		return getBinaryDataFrom(image, width, height);
+	}
+	
+	public static int[] getBinaryDataFrom(Image image, int width, int height) {
 		final int[] data = new int[width * height];
+		
 		image.getPixelReader().getPixels(
 				0, 0, width, height, PixelFormat.getIntArgbPreInstance(), data, 0, width);
 		
