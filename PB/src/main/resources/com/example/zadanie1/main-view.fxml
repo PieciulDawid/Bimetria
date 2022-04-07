@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import com.example.zadanie1.components.CaptionedImageView?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.zadanie1.MainController"
+      spacing="10.0">
+
+    <CaptionedImageView fx:id="image" text="Magiczna różdżka"
+                        prefImageHeight="550.0" onMouseClickedOnImage="#onImageClicked"/>
+
+    <HBox spacing="10.0">
+        <padding>
+            <Insets left="10.0"/>
+        </padding>
+
+        <Button text="Załaduj" onAction="#loadNewImage"/>
+        <Button text="Reset" onAction="#reset"/>
+        <ToggleButton fx:id="global" text="Globalnie"/>
+        <Slider fx:id="slider" max="255" value="30"
+                showTickLabels="true" showTickMarks="true"/>
+    </HBox>
+</VBox>

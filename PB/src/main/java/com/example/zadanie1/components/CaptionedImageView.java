@@ -1,7 +1,9 @@
 package com.example.zadanie1.components;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -25,6 +27,9 @@ public class CaptionedImageView extends VBox {
 	@FXML
 	private final DoubleProperty prefImageWidth = new SimpleDoubleProperty();
 	
+	private final ObjectProperty<EventHandler<? super MouseEvent>> onMouseClickedOnImage
+			= new SimpleObjectProperty<>();
+	
 	@SneakyThrows
 	public CaptionedImageView() {
 		final var fxmlLoader = new FXMLLoader(getClass().getResource(
@@ -33,6 +38,8 @@ public class CaptionedImageView extends VBox {
 		fxmlLoader.setController(this);
 		
 		fxmlLoader.load();
+		
+		imageView.onMouseClickedProperty().bind(onMouseClickedOnImage);
 	}
 	
 	public void setImage(Image image) {
@@ -84,6 +91,15 @@ public class CaptionedImageView extends VBox {
 	}
 	
 	public void setOnMouseClickedOnImage(EventHandler<? super MouseEvent> value) {
-		getImageView().setOnMouseClicked(value);
+		onMouseClickedOnImage.set(value);
 	}
+	
+	public EventHandler<? super MouseEvent> getOnMouseClickedOnImage() {
+		return onMouseClickedOnImage.get();
+	}
+	
+	public ObjectProperty<EventHandler<? super MouseEvent>> onMouseClickedOnImageProperty() {
+		return onMouseClickedOnImage;
+	}
+	
 }

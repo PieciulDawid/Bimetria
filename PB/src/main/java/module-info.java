@@ -8,5 +8,7 @@ module com.example.zadanie1 {
 
     opens com.example.zadanie1 to javafx.fxml;
     opens com.example.zadanie1.components to javafx.fxml;
+    
     exports com.example.zadanie1;
+    exports com.example.zadanie1.components;
 }

@@ -1,110 +1,24 @@
 package com.example.zadanie1;
 
-import com.example.zadanie1.components.CaptionedImageView;
 import javafx.application.Application;
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.DoubleProperty;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.scene.Group;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Slider;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.image.Image;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.scene.control.Button;
-
-import java.io.File;
-import java.io.IOException;
-import java.awt.image.BufferedImage;
-
 import lombok.SneakyThrows;
 
-public class HelloApplication extends Application {
-    public static File inFile;
+import java.awt.image.BufferedImage;
 
-    private static CaptionedImageView bucketTool;
-    private static Image originalImage;
-
+public class MainApp extends Application {
+    
     @Override
+    @SneakyThrows
     public void start(Stage stage) {
-        String fileName = "PB/zdjecie2.jpeg";
+        Parent root = new FXMLLoader(getClass().getResource("main-view.fxml")).load();
         
-        inFile = new File(fileName);
-    
-        originalImage = new Image(inFile.toURI().toString());
-    
-        final double[] height = {550};
-        final double[] width = {550 * originalImage.getWidth() / originalImage.getHeight()};
-
-        bucketTool = new CaptionedImageView();
-        bucketTool.setOnMouseClickedOnImage(EventUtil.newSegmentOnClickHandler(30, false));
-        bucketTool.setImage(originalImage);
-        bucketTool.setText("Magiczna różdzka");
-        bucketTool.setPrefImageHeight(height[0]);
-        bucketTool.setPrefImageWidth(width[0]);
-        
-        
-        Button load = new Button("Załaduj");
-        Button reset = new Button("Reset");
-        ToggleButton global = new ToggleButton("Globalnie");
-        Slider slider = new Slider();
-
-        load.setOnAction(event -> {
-            
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Open Resource File");
-            inFile = fileChooser.showOpenDialog(stage);
-
-            if (inFile != null && inFile.canRead()) {
-                originalImage = new Image(inFile.toURI().toString());
-            }
-
-            slider.setValue(30);
-            width[0] = height[0] * originalImage.getWidth() / originalImage.getHeight();
-
-            bucketTool.setImage(originalImage);
-            bucketTool.setPrefImageWidth(width[0]);
-        });
-        
-        reset.setOnAction(event -> bucketTool.setImage(originalImage));
-    
-        final InvalidationListener segmentationParametersChanged = newValue ->
-                bucketTool.setOnMouseClickedOnImage(
-                    EventUtil.newSegmentOnClickHandler(
-                            (int) slider.getValue(),
-                            global.isSelected()));
-        
-        global.selectedProperty().addListener(segmentationParametersChanged);
-        
-        slider.valueProperty().addListener(segmentationParametersChanged);
-
-        slider.setMin(0);
-        slider.setMax(255);
-        slider.setValue(30);
-        slider.setShowTickLabels(true);
-        slider.setShowTickMarks(true);
-        slider.setBlockIncrement(10);
-
-
-        HBox hBox0 = new HBox();
-        hBox0.getChildren().addAll(load, reset, global, slider);
-        VBox vBox1 = new VBox();
-        vBox1.getChildren().addAll(bucketTool, hBox0);
-        VBox vBox2 = new VBox();
-        vBox2.getChildren().addAll();
-
-
-        HBox hBox = new HBox();
-        hBox.getChildren().addAll(vBox1, vBox2);
-        
-        Group root = new Group(hBox);
-        Scene scene = new Scene(root, 500, 700, Color.LIGHTGRAY);
-        stage.setTitle("Binaryzacja");
+        Scene scene = new Scene(root, Color.LIGHTGRAY);
+        stage.setTitle("Segmentacja");
         stage.setScene(scene);
         stage.show();
     }
@@ -113,7 +27,7 @@ public class HelloApplication extends Application {
         launch();
     }
 
-    private static void convertToBinarization(BufferedImage image, double value) {
+    private static void performThresholding(BufferedImage image, double value) {
 
         int width = image.getWidth();
         int height = image.getHeight();
